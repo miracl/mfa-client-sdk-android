@@ -36,7 +36,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
-import com.miracl.mpinsdk.MPinSDK;
+import com.miracl.mpinsdk.MPinMFA;
 import com.miracl.mpinsdk.model.SessionDetails;
 import com.miracl.mpinsdk.model.Status;
 import com.miracl.mpinsdk.model.User;
@@ -227,16 +227,16 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
                         String jsonData = serviceResponse.body().string();
                         JSONObject responseJson = new JSONObject(jsonData);
 
-                        MPinSDK mPinSDK = SampleApplication.getSdk();
+                        MPinMFA mPinMfa = SampleApplication.getMfaSdk();
                         // Retrieve the url of the service from the response
                         String backendUrl = responseJson.getString("url");
 
                         // MPinSDK methods are synchronous, be sure not to call them on the ui thread
-                        com.miracl.mpinsdk.model.Status backendStatus = mPinSDK.SetBackend(backendUrl);
+                        com.miracl.mpinsdk.model.Status backendStatus = mPinMfa.setBackend(backendUrl);
                         if (backendStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
                             // If the backend is set successfully, we can retrieve the session details using the access code
                             SessionDetails details = new SessionDetails();
-                            return mPinSDK.GetSessionDetails(mCurrentAccessCode, details);
+                            return mPinMfa.getSessionDetails(mCurrentAccessCode, details);
                         } else {
                             return backendStatus;
                         }
@@ -297,11 +297,11 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
 
             @Override
             protected Pair<com.miracl.mpinsdk.model.Status, List<User>> doInBackground(Void... voids) {
-                MPinSDK sdk = SampleApplication.getSdk();
+                MPinMFA sdk = SampleApplication.getMfaSdk();
                 // Get the list of stored users for the currently set backend in order to check if there is
                 // an existing user that can be logged in
                 List<User> usersForCurrentBackend = new ArrayList<>();
-                com.miracl.mpinsdk.model.Status listUsersStatus = sdk.ListUsers(usersForCurrentBackend);
+                com.miracl.mpinsdk.model.Status listUsersStatus = sdk.listUsers(usersForCurrentBackend);
                 return new Pair<>(listUsersStatus, usersForCurrentBackend);
             }
 
@@ -337,14 +337,14 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
 
             @Override
             protected com.miracl.mpinsdk.model.Status doInBackground(Void... voids) {
-                MPinSDK mPinSDK = SampleApplication.getSdk();
+                MPinMFA mPinMfa = SampleApplication.getMfaSdk();
                 if (mCurrentUser != null && mCurrentAccessCode != null) {
                     // Start the authentication process with the scanned access code and a registered user
-                    com.miracl.mpinsdk.model.Status startAuthenticationStatus = mPinSDK
-                      .StartAuthentication(mCurrentUser, mCurrentAccessCode);
+                    com.miracl.mpinsdk.model.Status startAuthenticationStatus = mPinMfa
+                      .startAuthentication(mCurrentUser, mCurrentAccessCode);
                     if (startAuthenticationStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
                         // Finish the authentication with the user's pin
-                        return mPinSDK.FinishAuthenticationAN(mCurrentUser, pin, mCurrentAccessCode);
+                        return mPinMfa.finishAuthenticationAc(mCurrentUser, pin, mCurrentAccessCode);
                     } else {
                         return startAuthenticationStatus;
                     }

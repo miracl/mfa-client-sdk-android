@@ -21,7 +21,7 @@ package com.miracl.mpinsdksample;
 import android.app.Application;
 import android.os.AsyncTask;
 
-import com.miracl.mpinsdk.MPinSDK;
+import com.miracl.mpinsdk.MPinMFA;
 import com.miracl.mpinsdk.model.Status;
 
 import java.util.HashMap;
@@ -34,7 +34,7 @@ public class SampleApplication extends Application {
         System.loadLibrary("AndroidMpinSDK");
     }
 
-    private static MPinSDK sMPinSdk;
+    private static MPinMFA sMPinMfa;
     private static String  sAccessCode;
 
     @Override
@@ -45,18 +45,23 @@ public class SampleApplication extends Application {
 
             @Override
             protected com.miracl.mpinsdk.model.Status doInBackground(Void... voids) {
-                // Init the MPinSDK without additional configuration
-                sMPinSdk = new MPinSDK();
-                //TODO remove
-                Map<String, String> headers = new HashMap<>(1);
-                headers.put("User-Agent", "com.miracl.android.tcbmfa/1.1.1 (android/6.0.1) build/101");
-                return sMPinSdk.Init(null, SampleApplication.this, headers);
+                // Init the MPinMfa without additional configuration
+                sMPinMfa = new MPinMFA();
+                com.miracl.mpinsdk.model.Status status = sMPinMfa.init(null, SampleApplication.this);
+                if (status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
+                    //TODO change with actual User-Agent for the sample
+                    Map<String, String> headers = new HashMap<>(1);
+                    headers.put("User-Agent", "com.miracl.android.tcbmfa/1.1.1 (android/6.0.1) build/101");
+                    sMPinMfa.addCustomHeaders(headers);
+                }
+
+                return status;
             }
         }.execute();
     }
 
-    public static MPinSDK getSdk() {
-        return sMPinSdk;
+    public static MPinMFA getMfaSdk() {
+        return sMPinMfa;
     }
 
     public static String getCurrentAccessCode() {

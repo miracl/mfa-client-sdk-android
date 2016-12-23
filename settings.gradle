@@ -1,1 +1,1 @@
-include ':mpinsdk', ':sample'
+include ':mpinsdk', ':mfaSample'

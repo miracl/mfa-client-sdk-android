@@ -26,7 +26,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.miracl.mpinsdk.MPinSDK;
+import com.miracl.mpinsdk.MPinMFA;
 import com.miracl.mpinsdk.model.Status;
 import com.miracl.mpinsdk.model.User;
 
@@ -54,18 +54,18 @@ public class RegistrationSuccessfulActivity extends AppCompatActivity implements
 
             @Override
             protected com.miracl.mpinsdk.model.Status doInBackground(Void... voids) {
-                MPinSDK mPinSDK = SampleApplication.getSdk();
+                MPinMFA mPinMfa = SampleApplication.getMfaSdk();
                 ArrayList<User> users = new ArrayList<>();
                 // Check if we have a registered user for the currently set backend
-                mPinSDK.ListUsers(users);
+                mPinMfa.listUsers(users);
                 if (!users.isEmpty() && SampleApplication.getCurrentAccessCode() != null) {
                     mCurrentUser = users.get(0);
                     // Start the authentication process with the stored access code and a registered user
-                    com.miracl.mpinsdk.model.Status startAuthenticationStatus = mPinSDK
-                      .StartAuthentication(mCurrentUser, SampleApplication.getCurrentAccessCode());
+                    com.miracl.mpinsdk.model.Status startAuthenticationStatus = mPinMfa
+                      .startAuthentication(mCurrentUser, SampleApplication.getCurrentAccessCode());
                     if (startAuthenticationStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
                         // Finish the authentication with the user's pin
-                        return mPinSDK.FinishAuthenticationAN(mCurrentUser, pin, SampleApplication.getCurrentAccessCode());
+                        return mPinMfa.finishAuthenticationAc(mCurrentUser, pin, SampleApplication.getCurrentAccessCode());
                     } else {
                         return startAuthenticationStatus;
                     }

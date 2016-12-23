@@ -72,7 +72,7 @@ public class RegisterUserActivity extends AppCompatActivity implements View.OnCl
 
                 @Override
                 protected Void doInBackground(Void... voids) {
-                    SampleApplication.getSdk().DeleteUser(mCurrentUser);
+                    SampleApplication.getMfaSdk().deleteUser(mCurrentUser);
                     return null;
                 }
             }.execute();
@@ -90,7 +90,7 @@ public class RegisterUserActivity extends AppCompatActivity implements View.OnCl
             @Override
             protected com.miracl.mpinsdk.model.Status doInBackground(Void... voids) {
                 // Once we have the user's pin we can finish the registration process
-                return SampleApplication.getSdk().FinishRegistration(mCurrentUser, pin);
+                return SampleApplication.getMfaSdk().finishRegistration(mCurrentUser, pin);
             }
 
 
@@ -128,7 +128,7 @@ public class RegisterUserActivity extends AppCompatActivity implements View.OnCl
             protected com.miracl.mpinsdk.model.Status doInBackground(Void... voids) {
                 // After the user has followed the steps in the verification mail, it must be confirmed from the SDK
                 // in order to proceed with the registration process
-                return SampleApplication.getSdk().ConfirmRegistration(mCurrentUser);
+                return SampleApplication.getMfaSdk().confirmRegistration(mCurrentUser);
             }
 
             @Override
@@ -158,7 +158,7 @@ public class RegisterUserActivity extends AppCompatActivity implements View.OnCl
             protected com.miracl.mpinsdk.model.Status doInBackground(Void... voids) {
                 // If for some reason we need to resend the verification mail, the registration process for the user must be
                 // restarted
-                return SampleApplication.getSdk().RestartRegistration(mCurrentUser);
+                return SampleApplication.getMfaSdk().restartRegistration(mCurrentUser);
             }
 
             @Override
@@ -194,11 +194,11 @@ public class RegisterUserActivity extends AppCompatActivity implements View.OnCl
             protected com.miracl.mpinsdk.model.Status doInBackground(Void... voids) {
                 // Obtain a user object from the SDK. The id of the user is an email and while it is not mandatory to provide
                 // device name note that some backends may require it
-                mCurrentUser = SampleApplication.getSdk().MakeNewUser(email, "Android Sample App");
+                mCurrentUser = SampleApplication.getMfaSdk().makeNewUser(email, "Android Sample App");
 
                 // After we have a user, we can start the registration process for it. If successful this will trigger sending a
                 // confirmation email from the current backend
-                return SampleApplication.getSdk().StartRegistration(mCurrentUser);
+                return SampleApplication.getMfaSdk().startRegistration(mCurrentUser, SampleApplication.getCurrentAccessCode());
             }
 
             @Override
@@ -233,7 +233,7 @@ public class RegisterUserActivity extends AppCompatActivity implements View.OnCl
                     // If the email is changed after the registration is started, we delete the identity (because it will get
                     // stored otherwise) and effectively restart the registration process. This is solely not to clutter the
                     // sample app with users
-                    SampleApplication.getSdk().DeleteUser(mCurrentUser);
+                    SampleApplication.getMfaSdk().deleteUser(mCurrentUser);
                     return null;
                 }
 
