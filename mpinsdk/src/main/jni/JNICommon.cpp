@@ -26,7 +26,7 @@
 #include "JNICommon.h"
 #include "JNIUser.h"
 #include "JNIMPinSDK.h"
-#include "JNIMPinSDK.h"
+#include "JNIMPinMFA.h"
 
 static JavaVM * g_jvm;
 
@@ -46,6 +46,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 	JNIEnv* env = JNI_getJENV();
 
 	RegisterMPinSDKJNI(env);
+	RegisterMPinMFAJNI(env);
 	RegisterUserJNI(env);
 
 	return JNI_VERSION_1_6;
@@ -117,9 +118,9 @@ std::string JavaToStdString(JNIEnv* env, jstring jstr)
 	return str;
 }
 
-MPinSDK::UserPtr JavaToMPinUser(JNIEnv* env, jobject juser)
+MPinSDKBase::UserPtr JavaToMPinUser(JNIEnv* env, jobject juser)
 {
 	jclass clsUser = env->FindClass("com/miracl/mpinsdk/model/User");
 	jfieldID fidPtr = env->GetFieldID(clsUser, "mPtr", "J");
-	return *((MPinSDK::UserPtr*) env->GetLongField(juser, fidPtr));
+	return *((MPinSDKBase::UserPtr*) env->GetLongField(juser, fidPtr));
 }

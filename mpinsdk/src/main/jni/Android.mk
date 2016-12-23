@@ -9,6 +9,7 @@ LOCAL_SRC_FILES :=	../../../../mpin-sdk-core/ext/cvshared/cpp/CvString.cpp \
 					../../../../mpin-sdk-core/ext/cvshared/cpp/CvXcode.cpp \
 					JNICommon.cpp \
 					JNIMPinSDK.cpp \
+					JNIMPinMFA.cpp \
 					JNIUser.cpp \
 					HTTPConnector.cpp \
 					Storage.cpp \
@@ -36,7 +37,9 @@ LOCAL_SRC_FILES :=	../../../../mpin-sdk-core/ext/cvshared/cpp/CvString.cpp \
 					$(PATH_TO_CORE)/version.c \
 					$(PATH_TO_CORE)/version.h \
 					\
+					$(PATH_TO_CORE)/../mfa_sdk.cpp \
 					$(PATH_TO_CORE)/../mpin_sdk.cpp \
+					$(PATH_TO_CORE)/../mpin_sdk_base.cpp \
 					$(PATH_TO_CORE)/../utils.cpp \
 					$(PATH_TO_CORE)/../mpin_crypto_non_tee.cpp
 

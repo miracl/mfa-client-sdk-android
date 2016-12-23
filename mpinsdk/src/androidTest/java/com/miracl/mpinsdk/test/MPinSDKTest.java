@@ -36,17 +36,17 @@ public class MPinSDKTest extends InstrumentationTestCase {
         HashMap<String, String> config = new HashMap<String, String>();
         config.put(MPinSDK.CONFIG_BACKEND, BACKEND);
 
-        Status s = m_sdk.Init(config, getInstrumentation().getTargetContext());
+        Status s = m_sdk.init(config, getInstrumentation().getTargetContext());
         assertEquals("MPinSDK::Init failed: '" + s.getErrorMessage() + "'.", Status.Code.OK, s.getStatusCode());
 
         // Delete the USER_ID user if it was leftover in sdk for some reason (probably from previous test run)
         LinkedList<User> users = new LinkedList<User>();
-        m_sdk.ListUsers(users);
+        m_sdk.listUsers(users);
         Iterator<User> i = users.iterator();
         while (i.hasNext()) {
             User user = i.next();
             if (user.getId().equals(USER_ID)) {
-                m_sdk.DeleteUser(user);
+                m_sdk.deleteUser(user);
             }
         }
 
@@ -56,7 +56,7 @@ public class MPinSDKTest extends InstrumentationTestCase {
     @After
     public void tearDown() {
         if (m_user != null) {
-            m_sdk.DeleteUser(m_user);
+            m_sdk.deleteUser(m_user);
             m_user = null;
         }
 
@@ -66,24 +66,24 @@ public class MPinSDKTest extends InstrumentationTestCase {
 
     @Test
     public void testUserShouldRegisterAndAuthenticate() {
-        m_user = m_sdk.MakeNewUser(USER_ID);
+        m_user = m_sdk.makeNewUser(USER_ID);
 
-        Status s = m_sdk.StartRegistration(m_user);
+        Status s = m_sdk.startRegistration(m_user);
         assertEquals("MPinSDK::StartRegistration failed: '" + s.getErrorMessage() + "'.", Status.Code.OK, s.getStatusCode());
         assertEquals("Unexpected user state after MPinSDKv2::StartRegistration (should be force activated).", User.State.ACTIVATED, m_user.getState());
 
-        s = m_sdk.ConfirmRegistration(m_user);
+        s = m_sdk.confirmRegistration(m_user);
         assertEquals("MPinSDK::ConfirmRegistration failed: '" + s.getErrorMessage() + "'.", Status.Code.OK, s.getStatusCode());
 
-        s = m_sdk.FinishRegistration(m_user, "1234");
+        s = m_sdk.finishRegistration(m_user, "1234");
         assertEquals("MPinSDK::FinishRegistration failed: '" + s.getErrorMessage() + "'.", Status.Code.OK, s.getStatusCode());
         assertEquals("Unexpected user state after MPinSDKv2::FinishRegistration.", User.State.REGISTERED, m_user.getState());
 
-        s = m_sdk.StartAuthentication(m_user);
+        s = m_sdk.startAuthentication(m_user);
         assertEquals("MPinSDK::StartAuthentication failed: '" + s.getErrorMessage() + "'.", Status.Code.OK, s.getStatusCode());
 
         StringBuilder authResultData = new StringBuilder();
-        s = m_sdk.FinishAuthentication(m_user, "1234", authResultData);
+        s = m_sdk.finishAuthentication(m_user, "1234", authResultData);
         assertEquals("MPinSDK::FinishAuthentication failed: '" + s.getErrorMessage() + "'.", Status.Code.OK, s.getStatusCode());
     }
 }

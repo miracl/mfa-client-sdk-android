@@ -64,6 +64,14 @@ public class User implements Closeable {
         this.isUserSelected = isUserSelected;
     }
 
+    public String getCustomerId() {
+        return nGetCustomerId(mPtr);
+    }
+
+    public String getAppId() {
+        return nGetAppId(mPtr);
+    }
+
 
     @Override
     public void close() {
@@ -96,4 +104,8 @@ public class User implements Closeable {
     private native int nGetState(long ptr);
 
     private native String nGetBackend(long ptr);
+
+    private native String nGetCustomerId(long ptr);
+
+    private native String nGetAppId(long ptr);
 }

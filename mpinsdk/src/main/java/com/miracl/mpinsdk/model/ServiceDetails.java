@@ -21,7 +21,10 @@ package com.miracl.mpinsdk.model;
 public class ServiceDetails {
 
     public String name;
+
     public String backendUrl;
+
     public String rpsPrefix;
+
     public String logoUrl;
 }

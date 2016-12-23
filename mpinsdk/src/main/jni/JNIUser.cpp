@@ -41,12 +41,24 @@ static jstring nGetBackend(JNIEnv* env, jobject jobj, jlong jptr)
     return env->NewStringUTF( (*((const MPinSDK::UserPtr*)jptr))->GetBackend().c_str());
 }
 
+static jstring nGetCustomerId(JNIEnv* env, jobject jobj, jlong jptr)
+{
+    return env->NewStringUTF( (*((const MPinSDK::UserPtr*)jptr))->GetCustomerId().c_str());
+}
+
+static jstring nGetAppId(JNIEnv* env, jobject jobj, jlong jptr)
+{
+    return env->NewStringUTF( (*((const MPinSDK::UserPtr*)jptr))->GetAppId().c_str());
+}
+
 static JNINativeMethod g_methodsUser[] =
 {
 	NATIVE_METHOD(nDestruct, "(J)V"),
 	NATIVE_METHOD(nGetId, "(J)Ljava/lang/String;"),
 	NATIVE_METHOD(nGetState, "(J)I"),
-	NATIVE_METHOD(nGetBackend, "(J)Ljava/lang/String;")
+	NATIVE_METHOD(nGetBackend, "(J)Ljava/lang/String;"),
+	NATIVE_METHOD(nGetCustomerId, "(J)Ljava/lang/String;"),
+	NATIVE_METHOD(nGetAppId, "(J)Ljava/lang/String;")
 };
 
 void RegisterUserJNI(JNIEnv* env)

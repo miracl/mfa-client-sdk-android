@@ -21,6 +21,14 @@ package com.miracl.mpinsdk.model;
 public class SessionDetails {
 
     public String prerollId;
+
     public String appName;
+
     public String appIconUrl;
+
+    public String customerId;
+
+    private String customerName;
+
+    private String customerIconUrl;
 }

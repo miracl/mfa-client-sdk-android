@@ -24,8 +24,12 @@ import java.io.Serializable;
 public class OTP implements Serializable {
 
     public String otp;
-    public long   expireTime;
-    public int    ttlSeconds;
-    public long   nowTime;
+
+    public long expireTime;
+
+    public int ttlSeconds;
+
+    public long nowTime;
+
     public Status status;
 }

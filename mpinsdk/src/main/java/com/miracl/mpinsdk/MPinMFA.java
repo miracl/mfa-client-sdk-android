@@ -18,10 +18,10 @@
  ***************************************************************/
 package com.miracl.mpinsdk;
 
-
 import android.content.Context;
 
-import com.miracl.mpinsdk.model.OTP;
+import com.miracl.mpinsdk.model.ServiceDetails;
+import com.miracl.mpinsdk.model.SessionDetails;
 import com.miracl.mpinsdk.model.Status;
 import com.miracl.mpinsdk.model.User;
 
@@ -29,13 +29,13 @@ import java.io.Closeable;
 import java.util.List;
 import java.util.Map;
 
-
-public class MPinSDK implements Closeable {
+public class MPinMFA implements Closeable {
 
     public static final String CONFIG_BACKEND = "backend";
+
     private long mPtr;
 
-    public MPinSDK() {
+    public MPinMFA() {
         mPtr = nConstruct();
     }
 
@@ -110,32 +110,37 @@ public class MPinSDK implements Closeable {
     }
 
 
-    public Status startRegistration(User user) {
-        return nStartRegistration(mPtr, user, "", "");
+    public Status getServiceDetails(String serviceUrl, ServiceDetails serviceDetails) {
+        return nGetServiceDetails(mPtr, serviceUrl, serviceDetails);
     }
 
-    public Status startRegistration(User user, String activateCode) {
-        return nStartRegistration(mPtr, user, activateCode, "");
+    public Status getSessionDetails(String accessCode, SessionDetails sessionDetails) {
+        return nGetSessionDetails(mPtr, accessCode, sessionDetails);
     }
 
-    public Status startRegistration(User user, String activateCode, String userData) {
-        return nStartRegistration(mPtr, user, activateCode, userData);
+    public void setCid(String cid) {
+        nSetCID(mPtr, cid);
+    }
+
+    public Status abortSession(String accessCode) {
+        return nAbortSession(mPtr, accessCode);
+    }
+
+
+    public Status startRegistration(User user, String accessCode) {
+        return nStartRegistration(mPtr, user, accessCode, "");
+    }
+
+    public Status startRegistration(User user, String accessCode, String pushToken) {
+        return nStartRegistration(mPtr, user, accessCode, pushToken);
     }
 
     public Status restartRegistration(User user) {
-        return nRestartRegistration(mPtr, user, "");
-    }
-
-    public Status restartRegistration(User user, String userData) {
-        return nRestartRegistration(mPtr, user, userData);
+        return nRestartRegistration(mPtr, user);
     }
 
     public Status confirmRegistration(User user) {
-        return nConfirmRegistration(mPtr, user, "");
-    }
-
-    public Status confirmRegistration(User user, String pushToken) {
-        return nConfirmRegistration(mPtr, user, pushToken);
+        return nConfirmRegistration(mPtr, user);
     }
 
     public Status finishRegistration(User user, String pin) {
@@ -143,44 +148,21 @@ public class MPinSDK implements Closeable {
     }
 
 
-    public Status startAuthentication(User user) {
-        return nStartAuthentication(mPtr, user);
+    public Status startAuthentication(User user, String accessCode) {
+        return nStartAuthentication(mPtr, user, accessCode);
     }
 
-    public Status checkAccessNumber(String accessNumber) {
-        return nCheckAccessNumber(mPtr, accessNumber);
+    public Status finishAuthentication(User user, String pin, StringBuilder authCode) {
+        return nFinishAuthentication(mPtr, user, pin, authCode);
     }
 
-    public Status finishAuthentication(User user, String pin) {
-        return nFinishAuthentication(mPtr, user, pin);
+    public Status finishAuthenticationAc(User user, String pin, String accessCode) {
+        return nFinishAuthenticationAC(mPtr, user, pin, accessCode);
     }
 
-    public Status finishAuthentication(User user, String pin, StringBuilder authResultData) {
-        return nFinishAuthenticationResultData(mPtr, user, pin, authResultData);
-    }
-
-    public Status finishAuthenticationOTP(User user, String pin, OTP otp) {
-        return nFinishAuthenticationOTP(mPtr, user, pin, otp);
-    }
-
-    public Status finishAuthenticationAN(User user, String pin, String accessNumber) {
-        return nFinishAuthenticationAN(mPtr, user, pin, accessNumber);
-    }
 
     public Status listUsers(List<User> users) {
         return nListUsers(mPtr, users);
-    }
-
-    public Status listAllUsers(List<User> users) {
-        return nListAllUsers(mPtr, users);
-    }
-
-    public Status listUsers(List<User> users, String backend) {
-        return nListUsersForBackend(mPtr, users, backend);
-    }
-
-    public Status listBackends(List<String> backends) {
-        return nListBackends(mPtr, backends);
     }
 
     // Native methods from MPinSDKBase
@@ -195,7 +177,6 @@ public class MPinSDK implements Closeable {
 
     private native void nClearCustomHeaders(long ptr);
 
-
     private native Status nTestBackend(long ptr, String server);
 
     private native Status nTestBackendRPS(long ptr, String server, String rpsPrefix);
@@ -204,13 +185,11 @@ public class MPinSDK implements Closeable {
 
     private native Status nSetBackendRPS(long ptr, String server, String rpsPrefix);
 
-
     private native User nMakeNewUser(long ptr, String id, String deviceName);
 
     private native void nDeleteUser(long ptr, User user);
 
     private native void nClearUsers(long ptr);
-
 
     private native boolean nCanLogout(long ptr, User user);
 
@@ -218,35 +197,31 @@ public class MPinSDK implements Closeable {
 
     private native String nGetClientParam(long ptr, String key);
 
-    // Native methods from MPinSDK
+    // Native methods from MPinMFA
 
-    private native Status nStartRegistration(long ptr, User user, String activateCode, String userData);
+    private native Status nGetServiceDetails(long ptr, String url, ServiceDetails serviceDetails);
 
-    private native Status nRestartRegistration(long ptr, User user, String userData);
+    private native Status nGetSessionDetails(long ptr, String accessCode, SessionDetails sessionDetails);
 
-    private native Status nConfirmRegistration(long ptr, User user, String pushToken);
+    private native void nSetCID(long ptr, String cid);
+
+    private native Status nAbortSession(long ptr, String accessCode);
+
+    private native Status nStartRegistration(long ptr, User user, String accessCode, String pushToken);
+
+    private native Status nRestartRegistration(long ptr, User user);
+
+    private native Status nConfirmRegistration(long ptr, User user);
 
     private native Status nFinishRegistration(long ptr, User user, String pin);
 
 
-    private native Status nStartAuthentication(long ptr, User user);
+    private native Status nStartAuthentication(long ptr, User user, String accessCode);
 
-    private native Status nCheckAccessNumber(long ptr, String accessNumber);
+    private native Status nFinishAuthentication(long ptr, User user, String pin, StringBuilder authCode);
 
-    private native Status nFinishAuthentication(long ptr, User user, String pin);
-
-    private native Status nFinishAuthenticationResultData(long ptr, User user, String pin, StringBuilder authResultData);
-
-    private native Status nFinishAuthenticationOTP(long ptr, User user, String pin, OTP otp);
-
-    private native Status nFinishAuthenticationAN(long ptr, User user, String pin, String accessNumber);
+    private native Status nFinishAuthenticationAC(long ptr, User user, String pin, String accessCode);
 
 
     private native Status nListUsers(long ptr, List<User> users);
-
-    private native Status nListUsersForBackend(long ptr, List<User> users, String backend);
-
-    private native Status nListAllUsers(long ptr, List<User> users);
-
-    private native Status nListBackends(long ptr, List<String> backends);
 }

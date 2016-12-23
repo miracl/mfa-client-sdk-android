@@ -23,6 +23,7 @@
 #include <jni.h>
 #include <android/log.h>
 #include "mpin_sdk.h"
+#include "mfa_sdk.h"
 
 /*
  * Helper macros
