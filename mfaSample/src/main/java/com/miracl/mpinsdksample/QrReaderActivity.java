@@ -37,6 +37,7 @@ import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.miracl.mpinsdk.MPinMFA;
+import com.miracl.mpinsdk.model.ServiceDetails;
 import com.miracl.mpinsdk.model.SessionDetails;
 import com.miracl.mpinsdk.model.Status;
 import com.miracl.mpinsdk.model.User;
@@ -48,16 +49,8 @@ import net.sourceforge.zbar.ImageScanner;
 import net.sourceforge.zbar.Symbol;
 import net.sourceforge.zbar.SymbolSet;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class QrReaderActivity extends AppCompatActivity implements EnterPinDialog.EventListener {
 
@@ -83,10 +76,9 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
 
     private EnterPinDialog mEnterPinDialog;
 
-    private OkHttpClient mOkHttpClient;
-
-    private String mCurrentAccessCode;
-    private User   mCurrentUser;
+    private String         mCurrentAccessCode;
+    private User           mCurrentUser;
+    private ServiceDetails mCurrentServiceDetails;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,8 +92,6 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
 
         mScanner = new ImageScanner();
         mScanner.setConfig(Symbol.QRCODE, Config.ENABLE, 1);
-
-        mOkHttpClient = new OkHttpClient();
 
         mEnterPinDialog = new EnterPinDialog(this, this);
     }
@@ -204,64 +194,34 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
         if (qrUri.getScheme() != null && qrUri.getAuthority() != null && qrUri.getFragment() != null && !qrUri.getFragment()
           .isEmpty()) {
 
-            //Create uri to  qr-read-base-url/service
-            Uri.Builder uriBuilder = new Uri.Builder();
-            uriBuilder.authority(qrUri.getAuthority()).scheme(qrUri.getScheme()).path("service");
-            final Uri serviceUri = uriBuilder.build();
-
             // Obtain the access code from the qr-read url
             mCurrentAccessCode = qrUri.getFragment();
 
-            // Do the network request to /service and MPinSDK session initialization on a separate thread
+            final String baseUrl = qrUri.getScheme() + "://" + qrUri.getAuthority();
+
+            // Obtain the service details and set the backend
             new AsyncTask<Void, Void, Status>() {
 
                 @Override
                 protected com.miracl.mpinsdk.model.Status doInBackground(Void... voids) {
-                    //TODO remove
-                    Request getServiceInfoRequest = new Request.Builder().url(serviceUri.toString()).get()
-                      .addHeader("User-Agent", "com.miracl.android.tcbmfa/1.1.1 (android/6.0.1) build/101").build();
+                    MPinMFA mPinMfa = SampleApplication.getMfaSdk();
+                    ServiceDetails serviceDetails = new ServiceDetails();
 
-                    try {
-                        Response serviceResponse = mOkHttpClient.newCall(getServiceInfoRequest).execute();
+                    // MPinSDK methods are synchronous, be sure not to call them on the ui thread
+                    com.miracl.mpinsdk.model.Status serviceDetailsStatus = mPinMfa.getServiceDetails(baseUrl, serviceDetails);
+                    if (serviceDetailsStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
 
-                        String jsonData = serviceResponse.body().string();
-                        JSONObject responseJson = new JSONObject(jsonData);
-
-                        MPinMFA mPinMfa = SampleApplication.getMfaSdk();
-                        // Retrieve the url of the service from the response
-                        String backendUrl = responseJson.getString("url");
-
-                        // MPinSDK methods are synchronous, be sure not to call them on the ui thread
-                        com.miracl.mpinsdk.model.Status backendStatus = mPinMfa.setBackend(backendUrl);
+                        com.miracl.mpinsdk.model.Status backendStatus = mPinMfa.setBackend(serviceDetails.backendUrl);
                         if (backendStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
+                            mCurrentServiceDetails = serviceDetails;
                             // If the backend is set successfully, we can retrieve the session details using the access code
                             SessionDetails details = new SessionDetails();
                             return mPinMfa.getSessionDetails(mCurrentAccessCode, details);
                         } else {
                             return backendStatus;
                         }
-                    } catch (IOException e) {
-                        // Request to /service failed
-                        runOnUiThread(new Runnable() {
-
-                            @Override
-                            public void run() {
-                                Toast.makeText(QrReaderActivity.this, "Could not make request to " + serviceUri.toString(),
-                                  Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        return null;
-                    } catch (JSONException e) {
-                        // Response from /service has unexpected format
-                        runOnUiThread(new Runnable() {
-
-                            @Override
-                            public void run() {
-                                Toast.makeText(QrReaderActivity.this,
-                                  "Unexpected format of json returned by " + serviceUri.toString(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        return null;
+                    } else {
+                        return serviceDetailsStatus;
                     }
                 }
 
@@ -298,11 +258,11 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
             @Override
             protected Pair<com.miracl.mpinsdk.model.Status, List<User>> doInBackground(Void... voids) {
                 MPinMFA sdk = SampleApplication.getMfaSdk();
-                // Get the list of stored users for the currently set backend in order to check if there is
+                // Get the list of stored users in order to check if there is
                 // an existing user that can be logged in
-                List<User> usersForCurrentBackend = new ArrayList<>();
-                com.miracl.mpinsdk.model.Status listUsersStatus = sdk.listUsers(usersForCurrentBackend);
-                return new Pair<>(listUsersStatus, usersForCurrentBackend);
+                List<User> users = new ArrayList<>();
+                com.miracl.mpinsdk.model.Status listUsersStatus = sdk.listUsers(users);
+                return new Pair<>(listUsersStatus, users);
             }
 
             @Override
@@ -310,16 +270,25 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
                 com.miracl.mpinsdk.model.Status status = statusUsersPair.first;
 
                 if (status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-                    List<User> currentBackendUsers = statusUsersPair.second;
+                    // Filter the users for the current backend
+                    Uri currentBackend = Uri.parse(mCurrentServiceDetails.backendUrl);
+                    if (currentBackend != null && currentBackend.getAuthority() != null) {
+                        List<User> currentBackendUsers = new ArrayList<>();
+                        for (User user : statusUsersPair.second) {
+                            if (user.getBackend().equalsIgnoreCase(currentBackend.getAuthority())) {
+                                currentBackendUsers.add(user);
+                            }
+                        }
 
-                    if (currentBackendUsers.isEmpty()) {
-                        // If there are no users, we need to register a new one
-                        startActivity(new Intent(QrReaderActivity.this, RegisterUserActivity.class));
-                    } else {
-                        // If there is a registered user start the authentication process
-                        mCurrentUser = currentBackendUsers.get(0);
-                        mEnterPinDialog.setTitle(mCurrentUser.getId());
-                        mEnterPinDialog.show();
+                        if (currentBackendUsers.isEmpty()) {
+                            // If there are no users, we need to register a new one
+                            startActivity(new Intent(QrReaderActivity.this, RegisterUserActivity.class));
+                        } else {
+                            // If there is a registered user start the authentication process
+                            mCurrentUser = currentBackendUsers.get(0);
+                            mEnterPinDialog.setTitle(mCurrentUser.getId());
+                            mEnterPinDialog.show();
+                        }
                     }
                 } else {
                     // Listing user for the current backend failed
