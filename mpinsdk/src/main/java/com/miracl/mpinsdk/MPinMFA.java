@@ -148,16 +148,20 @@ public class MPinMFA implements Closeable {
     }
 
 
+    public Status getAccessCode(String authUrl, StringBuilder accessCode) {
+        return nGetAccessCode(mPtr, authUrl, accessCode);
+    }
+
     public Status startAuthentication(User user, String accessCode) {
         return nStartAuthentication(mPtr, user, accessCode);
     }
 
-    public Status finishAuthentication(User user, String pin, StringBuilder authCode) {
-        return nFinishAuthentication(mPtr, user, pin, authCode);
+    public Status finishAuthentication(User user, String pin, String accessCode) {
+        return nFinishAuthentication(mPtr, user, pin, accessCode);
     }
 
-    public Status finishAuthenticationAc(User user, String pin, String accessCode) {
-        return nFinishAuthenticationAC(mPtr, user, pin, accessCode);
+    public Status finishAuthentication(User user, String pin, String accessCode, StringBuilder authCode) {
+        return nFinishAuthenticationAuthCode(mPtr, user, pin, accessCode, authCode);
     }
 
 
@@ -216,11 +220,13 @@ public class MPinMFA implements Closeable {
     private native Status nFinishRegistration(long ptr, User user, String pin);
 
 
+    private native Status nGetAccessCode(long ptr, String authUrl, StringBuilder accessCode);
+
     private native Status nStartAuthentication(long ptr, User user, String accessCode);
 
-    private native Status nFinishAuthentication(long ptr, User user, String pin, StringBuilder authCode);
+    private native Status nFinishAuthentication(long ptr, User user, String pin, String accessCode);
 
-    private native Status nFinishAuthenticationAC(long ptr, User user, String pin, String accessCode);
+    private native Status nFinishAuthenticationAuthCode(long ptr, User user, String pin, String accessCode, StringBuilder authCode);
 
 
     private native Status nListUsers(long ptr, List<User> users);

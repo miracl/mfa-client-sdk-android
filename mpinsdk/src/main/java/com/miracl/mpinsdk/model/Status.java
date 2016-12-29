@@ -70,6 +70,7 @@ public class Status implements Serializable {
         HTTP_REQUEST_ERROR, // Remote error, that was not reduced to one of the above - invalid data sent to server, the
         // remote server returned 4xx error status
         BAD_USER_AGENT, // Remote error - user agent not supported
-        CLIENT_SECRET_EXPIRED // Remote error - re-registration required because server master secret expired
+        CLIENT_SECRET_EXPIRED, // Remote error - re-registration required because server master secret expired
+        BAD_CLIENT_VERSION // Remote error - wrong client app version
     }
 }

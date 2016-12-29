@@ -344,7 +344,7 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
                       .startAuthentication(mCurrentUser, mCurrentAccessCode);
                     if (startAuthenticationStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
                         // Finish the authentication with the user's pin
-                        return mPinMfa.finishAuthenticationAc(mCurrentUser, pin, mCurrentAccessCode);
+                        return mPinMfa.finishAuthentication(mCurrentUser, pin, mCurrentAccessCode);
                     } else {
                         return startAuthenticationStatus;
                     }

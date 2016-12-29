@@ -65,7 +65,7 @@ public class RegistrationSuccessfulActivity extends AppCompatActivity implements
                       .startAuthentication(mCurrentUser, SampleApplication.getCurrentAccessCode());
                     if (startAuthenticationStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
                         // Finish the authentication with the user's pin
-                        return mPinMfa.finishAuthenticationAc(mCurrentUser, pin, SampleApplication.getCurrentAccessCode());
+                        return mPinMfa.finishAuthentication(mCurrentUser, pin, SampleApplication.getCurrentAccessCode());
                     } else {
                         return startAuthenticationStatus;
                     }

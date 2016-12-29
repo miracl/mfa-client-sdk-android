@@ -225,18 +225,40 @@ static jobject nFinishRegistration(JNIEnv* env, jobject jobj, jlong jptr, jobjec
 	return MakeJavaStatus(env, sdk->FinishRegistration(JavaToMPinUser(env, juser), JavaToStdString(env, jpin)));
 }
 
+static jobject nGetAccessCode(JNIEnv* env, jobject jobj, jlong jptr, jstring jauthUrl, jobject jaccessCode)
+{
+    MfaSDK* sdk = (MfaSDK*) jptr;
+
+	MfaSDK::String accessCode;
+	MfaSDK::Status status = sdk->GetAccessCode(JavaToStdString(env, jauthUrl), accessCode);
+
+	jclass clsStringBuilder = env->FindClass("java/lang/StringBuilder");
+	jmethodID midSetLength = env->GetMethodID(clsStringBuilder, "setLength", "(I)V");
+	env->CallVoidMethod(jaccessCode, midSetLength, accessCode.size());
+	jmethodID midReplace = env->GetMethodID(clsStringBuilder, "replace", "(IILjava/lang/String;)Ljava/lang/StringBuilder;");
+	env->CallObjectMethod(jaccessCode, midReplace, 0, accessCode.size(), env->NewStringUTF(accessCode.c_str()));
+
+	return MakeJavaStatus(env, status);
+}
+
 static jobject nStartAuthentication(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring accessCode)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
     return MakeJavaStatus(env, sdk->StartAuthentication(JavaToMPinUser(env, juser),JavaToStdString(env,accessCode)));
 }
 
-static jobject nFinishAuthentication(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring jpin, jobject jauthCode)
+static jobject nFinishAuthentication(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring jpin, jstring jaccessCode)
+{
+	MfaSDK* sdk = (MfaSDK*) jptr;
+	return MakeJavaStatus(env, sdk->FinishAuthentication(JavaToMPinUser(env, juser), JavaToStdString(env, jpin), JavaToStdString(env, jaccessCode)));
+}
+
+static jobject nFinishAuthenticationAuthCode(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring jpin, jstring jaccessCode, jobject jauthCode)
 {
 	MfaSDK* sdk = (MfaSDK*) jptr;
 
 	MfaSDK::String authCodeData;
-	MfaSDK::Status status = sdk->FinishAuthentication(JavaToMPinUser(env, juser), JavaToStdString(env, jpin), authCodeData);
+	MfaSDK::Status status = sdk->FinishAuthentication(JavaToMPinUser(env, juser), JavaToStdString(env, jpin), JavaToStdString(env, jaccessCode), authCodeData);
 
 	jclass clsStringBuilder = env->FindClass("java/lang/StringBuilder");
 	jmethodID midSetLength = env->GetMethodID(clsStringBuilder, "setLength", "(I)V");
@@ -245,12 +267,6 @@ static jobject nFinishAuthentication(JNIEnv* env, jobject jobj, jlong jptr, jobj
 	env->CallObjectMethod(jauthCode, midReplace, 0, authCodeData.size(), env->NewStringUTF(authCodeData.c_str()));
 
 	return MakeJavaStatus(env, status);
-}
-
-static jobject nFinishAuthenticationAC(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring jpin, jstring jaccessCode)
-{
-	MfaSDK* sdk = (MfaSDK*) jptr;
-	return MakeJavaStatus(env, sdk->FinishAuthenticationAC(JavaToMPinUser(env, juser), JavaToStdString(env, jpin), JavaToStdString(env, jaccessCode)));
 }
 
 static jobject nListUsers(JNIEnv* env, jobject jobj, jlong jptr, jobject jusersList)
@@ -303,10 +319,11 @@ static JNINativeMethod g_methodsMfaSDK[] =
 	NATIVE_METHOD(nRestartRegistration, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),
 	NATIVE_METHOD(nConfirmRegistration, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),
 	NATIVE_METHOD(nFinishRegistration, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
+	NATIVE_METHOD(nGetAccessCode, "(JLjava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
 	NATIVE_METHOD(nStartAuthentication, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
-	NATIVE_METHOD(nFinishAuthentication, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
-    NATIVE_METHOD(nFinishAuthenticationAC, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
-    NATIVE_METHOD(nListUsers, "(JLjava/util/List;)Lcom/miracl/mpinsdk/model/Status;")	
+	NATIVE_METHOD(nFinishAuthentication, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
+	NATIVE_METHOD(nFinishAuthenticationAuthCode, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nListUsers, "(JLjava/util/List;)Lcom/miracl/mpinsdk/model/Status;")
 };
 
 void RegisterMPinMFAJNI(JNIEnv* env)
