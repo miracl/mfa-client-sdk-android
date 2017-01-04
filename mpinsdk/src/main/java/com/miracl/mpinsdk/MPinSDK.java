@@ -65,6 +65,14 @@ public class MPinSDK implements Closeable {
         nClearCustomHeaders(mPtr);
     }
 
+    public void addTrustedDomain(String domain) {
+        nAddTrustedDomain(mPtr, domain);
+    }
+
+    public void clearTrustedDomains() {
+        nClearTrustedDomains(mPtr);
+    }
+
     public Status testBackend(String server) {
         return nTestBackend(mPtr, server);
     }
@@ -194,6 +202,10 @@ public class MPinSDK implements Closeable {
     private native void nAddCustomHeaders(long ptr, Map<String, String> customHeaders);
 
     private native void nClearCustomHeaders(long ptr);
+
+    private native void nAddTrustedDomain(long ptr, String domain);
+
+    private native void nClearTrustedDomains(long ptr);
 
 
     private native Status nTestBackend(long ptr, String server);

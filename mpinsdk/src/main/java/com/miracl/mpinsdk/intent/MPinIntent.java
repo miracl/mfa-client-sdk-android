@@ -16,18 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  ***************************************************************/
-package com.miracl.mpinsdk.storage;
+package com.miracl.mpinsdk.intent;
 
+public class MPinIntent {
 
-public interface IStorage {
-
-    boolean SetData(String data);
-
-
-    String GetData();
-
-
-    String GetErrorMessage();
-
-    boolean ClearData();
+    public static final String ACTION_MPIN_STORAGE_CLEARED = "com.miracl.mpinsdk.intent.ACTION_MPIN_STORAGE_CLEARED";
 }

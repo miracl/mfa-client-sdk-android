@@ -65,6 +65,14 @@ public class MPinMFA implements Closeable {
         nClearCustomHeaders(mPtr);
     }
 
+    public void addTrustedDomain(String domain) {
+        nAddTrustedDomain(mPtr, domain);
+    }
+
+    public void clearTrustedDomains() {
+        nClearTrustedDomains(mPtr);
+    }
+
     public Status testBackend(String server) {
         return nTestBackend(mPtr, server);
     }
@@ -181,6 +189,11 @@ public class MPinMFA implements Closeable {
 
     private native void nClearCustomHeaders(long ptr);
 
+    private native void nAddTrustedDomain(long ptr, String domain);
+
+    private native void nClearTrustedDomains(long ptr);
+
+
     private native Status nTestBackend(long ptr, String server);
 
     private native Status nTestBackendRPS(long ptr, String server, String rpsPrefix);
@@ -226,7 +239,8 @@ public class MPinMFA implements Closeable {
 
     private native Status nFinishAuthentication(long ptr, User user, String pin, String accessCode);
 
-    private native Status nFinishAuthenticationAuthCode(long ptr, User user, String pin, String accessCode, StringBuilder authCode);
+    private native Status nFinishAuthenticationAuthCode(long ptr, User user, String pin, String accessCode,
+                                                        StringBuilder authCode);
 
 
     private native Status nListUsers(long ptr, List<User> users);

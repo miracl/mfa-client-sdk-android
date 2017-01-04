@@ -70,6 +70,18 @@ static void nClearCustomHeaders(JNIEnv* env, jobject jobj, jlong jptr)
     sdk->ClearCustomHeaders();
 }
 
+static void nAddTrustedDomain(JNIEnv* env, jobject jobj, jlong jptr, jstring domain)
+{
+    MPinSDK* sdk = (MPinSDK*) jptr;
+    sdk->AddTrustedDomain(JavaToStdString(env, domain));
+}
+
+static void nClearTrustedDomains(JNIEnv* env, jobject jobj, jlong jptr)
+{
+    MPinSDK* sdk = (MPinSDK*) jptr;
+    sdk->ClearTrustedDomains();
+}
+
 static jobject nTestBackend(JNIEnv* env, jobject jobj, jlong jptr, jstring jserver)
 {
     MPinSDK* sdk = (MPinSDK*) jptr;
@@ -324,6 +336,8 @@ static JNINativeMethod g_methodsMPinSDK[] =
     NATIVE_METHOD(nInit, "(JLjava/util/Map;Landroid/content/Context;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nAddCustomHeaders, "(JLjava/util/Map;)V"),
     NATIVE_METHOD(nClearCustomHeaders, "(J)V"),
+    NATIVE_METHOD(nAddTrustedDomain, "(JLjava/lang/String;)V"),
+    NATIVE_METHOD(nClearTrustedDomains, "(J)V"),
     NATIVE_METHOD(nTestBackend, "(JLjava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nTestBackendRPS, "(JLjava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nSetBackend, "(JLjava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),

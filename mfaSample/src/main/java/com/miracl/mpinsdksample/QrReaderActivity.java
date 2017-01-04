@@ -261,8 +261,18 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
                 // Get the list of stored users in order to check if there is
                 // an existing user that can be logged in
                 List<User> users = new ArrayList<>();
+                List<User> registeredUsers = new ArrayList<>();
                 com.miracl.mpinsdk.model.Status listUsersStatus = sdk.listUsers(users);
-                return new Pair<>(listUsersStatus, users);
+                for (User user : users) {
+                    if (user.getState() == User.State.REGISTERED) {
+                        registeredUsers.add(user);
+                    } else {
+                        // delete users that are not registered, because the sample does not handle such cases
+                        sdk.deleteUser(user);
+                    }
+                }
+
+                return new Pair<>(listUsersStatus, registeredUsers);
             }
 
             @Override
@@ -270,22 +280,22 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
                 com.miracl.mpinsdk.model.Status status = statusUsersPair.first;
 
                 if (status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-                    // Filter the users for the current backend
+                    // Filter the registered users for the current backend
                     Uri currentBackend = Uri.parse(mCurrentServiceDetails.backendUrl);
                     if (currentBackend != null && currentBackend.getAuthority() != null) {
-                        List<User> currentBackendUsers = new ArrayList<>();
+                        List<User> currentBackendRegisteredUsers = new ArrayList<>();
                         for (User user : statusUsersPair.second) {
                             if (user.getBackend().equalsIgnoreCase(currentBackend.getAuthority())) {
-                                currentBackendUsers.add(user);
+                                currentBackendRegisteredUsers.add(user);
                             }
                         }
 
-                        if (currentBackendUsers.isEmpty()) {
+                        if (currentBackendRegisteredUsers.isEmpty()) {
                             // If there are no users, we need to register a new one
                             startActivity(new Intent(QrReaderActivity.this, RegisterUserActivity.class));
                         } else {
                             // If there is a registered user start the authentication process
-                            mCurrentUser = currentBackendUsers.get(0);
+                            mCurrentUser = currentBackendRegisteredUsers.get(0);
                             mEnterPinDialog.setTitle(mCurrentUser.getId());
                             mEnterPinDialog.show();
                         }

@@ -38,6 +38,7 @@ class Storage: public IStorage {
 		explicit Storage(jobject context, bool isMpinType);
 		virtual bool SetData(const String& data);
 		virtual bool GetData(String &data);
+		virtual bool ClearData();
 		virtual const String& GetErrorMessage() const;
 		virtual ~Storage();
 	private:
@@ -47,7 +48,6 @@ class Storage: public IStorage {
 		jobject m_pjstorage;
 		// C++ Member variables
 		String m_errorMessage;
-		Storage(const Storage &);
 		void setErrorMessage();
 };
 
