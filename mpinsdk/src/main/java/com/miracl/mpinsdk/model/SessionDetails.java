@@ -28,7 +28,7 @@ public class SessionDetails {
 
     public String customerId;
 
-    private String customerName;
+    public String customerName;
 
-    private String customerIconUrl;
+    public String customerIconUrl;
 }
