@@ -94,6 +94,12 @@ static jobject nTestBackendRPS(JNIEnv* env, jobject jobj, jlong jptr, jstring js
     return MakeJavaStatus(env, sdk->TestBackend(JavaToStdString(env, jserver), JavaToStdString(env, jrpsPrefix)));
 }
 
+static jboolean nIsUserExisting(JNIEnv* env, jobject jobj, jlong jptr, jstring jid, jstring jcustomerId, jstring jappId)
+{
+    MfaSDK* sdk = (MfaSDK*) jptr;
+    return sdk->IsUserExisting(JavaToStdString(env,jid), JavaToStdString(env,jcustomerId), JavaToStdString(env,jappId));
+}
+
 static jobject nSetBackend(JNIEnv* env, jobject jobj, jlong jptr, jstring jserver)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
@@ -318,6 +324,7 @@ static JNINativeMethod g_methodsMfaSDK[] =
     NATIVE_METHOD(nClearTrustedDomains, "(J)V"),
     NATIVE_METHOD(nTestBackend, "(JLjava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nTestBackendRPS, "(JLjava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nIsUserExisting, "(JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z"),
     NATIVE_METHOD(nSetBackend, "(JLjava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nSetBackendRPS, "(JLjava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nMakeNewUser, "(JLjava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/User;"),

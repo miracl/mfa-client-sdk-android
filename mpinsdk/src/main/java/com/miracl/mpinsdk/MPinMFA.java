@@ -81,6 +81,18 @@ public class MPinMFA implements Closeable {
         return nTestBackendRPS(mPtr, server, rpsPrefix);
     }
 
+    public boolean isUserExisting(String id) {
+        return nIsUserExisting(mPtr, id, "", "");
+    }
+
+    public boolean isUserExisting(String id, String customerId) {
+        return nIsUserExisting(mPtr, id, customerId, "");
+    }
+
+    public boolean isUserExisting(String id, String customerId, String appId) {
+        return nIsUserExisting(mPtr, id, customerId, appId);
+    }
+
     public Status setBackend(String server) {
         return nSetBackend(mPtr, server);
     }
@@ -197,6 +209,8 @@ public class MPinMFA implements Closeable {
     private native Status nTestBackend(long ptr, String server);
 
     private native Status nTestBackendRPS(long ptr, String server, String rpsPrefix);
+
+    private native boolean nIsUserExisting(long ptr, String id, String customerId, String appId);
 
     private native Status nSetBackend(long ptr, String server);
 
