@@ -20,6 +20,7 @@ package com.miracl.mpinsdk;
 
 import android.content.Context;
 
+import com.miracl.mpinsdk.model.OTP;
 import com.miracl.mpinsdk.model.ServiceDetails;
 import com.miracl.mpinsdk.model.SessionDetails;
 import com.miracl.mpinsdk.model.Status;
@@ -176,12 +177,20 @@ public class MPinMFA implements Closeable {
         return nStartAuthentication(mPtr, user, accessCode);
     }
 
+    public Status startAuthenticationOtp(User user) {
+        return nStartAuthenticationOTP(mPtr, user);
+    }
+
     public Status finishAuthentication(User user, String pin, String accessCode) {
         return nFinishAuthentication(mPtr, user, pin, accessCode);
     }
 
     public Status finishAuthentication(User user, String pin, String accessCode, StringBuilder authCode) {
         return nFinishAuthenticationAuthCode(mPtr, user, pin, accessCode, authCode);
+    }
+
+    public Status finishAuthenticationOtp(User user, String pin, OTP otp) {
+        return nFinishAuthenticationOTP(mPtr, user, pin, otp);
     }
 
 
@@ -251,7 +260,11 @@ public class MPinMFA implements Closeable {
 
     private native Status nStartAuthentication(long ptr, User user, String accessCode);
 
+    private native Status nStartAuthenticationOTP(long ptr, User user);
+
     private native Status nFinishAuthentication(long ptr, User user, String pin, String accessCode);
+
+    private native Status nFinishAuthenticationOTP(long ptr, User user, String pin, OTP otp);
 
     private native Status nFinishAuthenticationAuthCode(long ptr, User user, String pin, String accessCode,
                                                         StringBuilder authCode);

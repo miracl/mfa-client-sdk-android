@@ -260,6 +260,12 @@ static jobject nGetAccessCode(JNIEnv* env, jobject jobj, jlong jptr, jstring jau
 	return MakeJavaStatus(env, status);
 }
 
+static jobject nStartAuthenticationOTP(JNIEnv* env, jobject jobj, jlong jptr, jobject juser)
+{
+    MfaSDK* sdk = (MfaSDK*) jptr;
+    return MakeJavaStatus(env, sdk->StartAuthenticationOTP(JavaToMPinUser(env, juser)));
+}
+
 static jobject nStartAuthentication(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring accessCode)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
@@ -286,6 +292,31 @@ static jobject nFinishAuthenticationAuthCode(JNIEnv* env, jobject jobj, jlong jp
 	env->CallObjectMethod(jauthCode, midReplace, 0, authCodeData.size(), env->NewStringUTF(authCodeData.c_str()));
 
 	return MakeJavaStatus(env, status);
+}
+
+static jobject nFinishAuthenticationOTP(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring jpin, jobject jotp)
+{
+    MfaSDK* sdk = (MfaSDK*) jptr;
+
+    MfaSDK::OTP otp;
+    MfaSDK::Status status = sdk->FinishAuthenticationOTP(JavaToMPinUser(env, juser), JavaToStdString(env, jpin), otp);
+
+    if(status == MfaSDK::Status::OK)
+    {
+        jclass clsOTP = env->FindClass("com/miracl/mpinsdk/model/OTP");
+        jfieldID fidOtp = env->GetFieldID(clsOTP, "otp", "Ljava/lang/String;");
+        jfieldID fidExpireTime = env->GetFieldID(clsOTP, "expireTime", "J");
+        jfieldID fidTtlSeconds = env->GetFieldID(clsOTP, "ttlSeconds", "I");
+        jfieldID fidNowTime = env->GetFieldID(clsOTP, "nowTime", "J");
+        jfieldID fidStatus = env->GetFieldID(clsOTP, "status", "Lcom/miracl/mpinsdk/model/Status;");
+        env->SetObjectField(jotp, fidOtp, env->NewStringUTF(otp.otp.c_str()));
+        env->SetLongField(jotp, fidExpireTime, otp.expireTime);
+        env->SetIntField(jotp, fidTtlSeconds, otp.ttlSeconds);
+        env->SetLongField(jotp, fidNowTime, otp.nowTime);
+        env->SetObjectField(jotp, fidStatus, MakeJavaStatus(env, otp.status));
+    }
+
+    return MakeJavaStatus(env, status);
 }
 
 static jobject nListUsers(JNIEnv* env, jobject jobj, jlong jptr, jobject jusersList)
@@ -342,9 +373,11 @@ static JNINativeMethod g_methodsMfaSDK[] =
 	NATIVE_METHOD(nConfirmRegistration, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),
 	NATIVE_METHOD(nFinishRegistration, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
 	NATIVE_METHOD(nGetAccessCode, "(JLjava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nStartAuthenticationOTP, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),
 	NATIVE_METHOD(nStartAuthentication, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
 	NATIVE_METHOD(nFinishAuthentication, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
 	NATIVE_METHOD(nFinishAuthenticationAuthCode, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nFinishAuthenticationOTP, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Lcom/miracl/mpinsdk/model/OTP;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nListUsers, "(JLjava/util/List;)Lcom/miracl/mpinsdk/model/Status;")
 };
 
