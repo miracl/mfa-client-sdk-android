@@ -21,47 +21,60 @@
 #include "JNICommon.h"
 
 
-static void nDestruct(JNIEnv* env, jobject jobj, jlong jptr)
-{
-	delete (MPinSDK::UserPtr*) jptr;
+static void nDestruct(JNIEnv *env, jobject jobj, jlong jptr) {
+    delete (MPinSDKBase::UserPtr *) jptr;
 }
 
-static jstring nGetId(JNIEnv* env, jobject jobj, jlong jptr)
-{
-	return env->NewStringUTF( (*((const MPinSDK::UserPtr*)jptr))->GetId().c_str());
+static jstring nGetId(JNIEnv *env, jobject jobj, jlong jptr) {
+    const MPinSDKBase::UserPtr *userPtr = (const MPinSDKBase::UserPtr *) jptr;
+    return env->NewStringUTF(userPtr->get()->GetId().c_str());
 }
 
-static jint nGetState(JNIEnv* env, jobject jobj, jlong jptr)
-{
-	return (*((const MPinSDK::UserPtr*)jptr))->GetState();
+static void nGetRegistrationExpiration(JNIEnv *env, jobject jobj, jlong jptr, jobject jexpiration) {
+    const MPinSDKBase::UserPtr *userPtr = (const MPinSDKBase::UserPtr *) jptr;
+    MPinSDKBase::Expiration expiration = userPtr->get()->GetRegistrationExpiration();
+
+    jclass clsExpiration = env->FindClass("com/miracl/mpinsdk/model/Expiration");
+    jfieldID fidExpireTimeSeconds = env->GetFieldID(clsExpiration, "expireTimeSeconds", "I");
+    jfieldID fidNowTimeSeconds = env->GetFieldID(clsExpiration, "nowTimeSeconds", "I");
+
+    env->SetIntField(jexpiration, fidExpireTimeSeconds, expiration.expireTimeSeconds);
+    env->SetIntField(jexpiration, fidNowTimeSeconds, expiration.nowTimeSeconds);
 }
 
-static jstring nGetBackend(JNIEnv* env, jobject jobj, jlong jptr)
-{
-    return env->NewStringUTF( (*((const MPinSDK::UserPtr*)jptr))->GetBackend().c_str());
+static jint nGetState(JNIEnv *env, jobject jobj, jlong jptr) {
+    const MPinSDKBase::UserPtr *userPtr = (const MPinSDKBase::UserPtr *) jptr;
+    return userPtr->get()->GetState();
 }
 
-static jstring nGetCustomerId(JNIEnv* env, jobject jobj, jlong jptr)
-{
-    return env->NewStringUTF( (*((const MPinSDK::UserPtr*)jptr))->GetCustomerId().c_str());
+static jstring nGetBackend(JNIEnv *env, jobject jobj, jlong jptr) {
+    const MPinSDKBase::UserPtr *userPtr = (const MPinSDKBase::UserPtr *) jptr;
+    return env->NewStringUTF(userPtr->get()->GetBackend().c_str());
 }
 
-static jstring nGetAppId(JNIEnv* env, jobject jobj, jlong jptr)
-{
-    return env->NewStringUTF( (*((const MPinSDK::UserPtr*)jptr))->GetAppId().c_str());
+static jstring nGetCustomerId(JNIEnv *env, jobject jobj, jlong jptr) {
+    const MPinSDKBase::UserPtr *userPtr = (const MPinSDKBase::UserPtr *) jptr;
+    return env->NewStringUTF(userPtr->get()->GetCustomerId().c_str());
+}
+
+static jstring nGetAppId(JNIEnv *env, jobject jobj, jlong jptr) {
+    const MPinSDKBase::UserPtr *userPtr = (const MPinSDKBase::UserPtr *) jptr;
+    return env->NewStringUTF(userPtr->get()->GetAppId().c_str());
 }
 
 static JNINativeMethod g_methodsUser[] =
-{
-	NATIVE_METHOD(nDestruct, "(J)V"),
-	NATIVE_METHOD(nGetId, "(J)Ljava/lang/String;"),
-	NATIVE_METHOD(nGetState, "(J)I"),
-	NATIVE_METHOD(nGetBackend, "(J)Ljava/lang/String;"),
-	NATIVE_METHOD(nGetCustomerId, "(J)Ljava/lang/String;"),
-	NATIVE_METHOD(nGetAppId, "(J)Ljava/lang/String;")
-};
+        {
+                NATIVE_METHOD(nDestruct, "(J)V"),
+                NATIVE_METHOD(nGetId, "(J)Ljava/lang/String;"),
+                NATIVE_METHOD(nGetRegistrationExpiration,
+                              "(JLcom/miracl/mpinsdk/model/Expiration;)V"),
+                NATIVE_METHOD(nGetState, "(J)I"),
+                NATIVE_METHOD(nGetBackend, "(J)Ljava/lang/String;"),
+                NATIVE_METHOD(nGetCustomerId, "(J)Ljava/lang/String;"),
+                NATIVE_METHOD(nGetAppId, "(J)Ljava/lang/String;")
+        };
 
-void RegisterUserJNI(JNIEnv* env)
-{
-	RegisterNativeMethods(env, "com/miracl/mpinsdk/model/User", g_methodsUser, ARR_LEN(g_methodsUser));
+void RegisterUserJNI(JNIEnv *env) {
+    RegisterNativeMethods(env, "com/miracl/mpinsdk/model/User", g_methodsUser,
+                          ARR_LEN(g_methodsUser));
 }

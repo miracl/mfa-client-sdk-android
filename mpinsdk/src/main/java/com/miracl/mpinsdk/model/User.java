@@ -37,6 +37,12 @@ public class User implements Closeable {
         return nGetId(mPtr);
     }
 
+    public Expiration getRegistationExpiration() {
+        Expiration expiration = new Expiration();
+        nGetRegistrationExpiration(mPtr, expiration);
+        return expiration;
+    }
+
     public State getState() {
         switch (nGetState(mPtr)) {
             case 1:
@@ -100,6 +106,8 @@ public class User implements Closeable {
     private native void nDestruct(long ptr);
 
     private native String nGetId(long ptr);
+
+    private native void nGetRegistrationExpiration(long ptr, Expiration expiration);
 
     private native int nGetState(long ptr);
 
