@@ -1,4 +1,7 @@
 <resources>
+    <!-- The CID for the mfa platform -->
+    <string name="mpin_cid" formatted="false" translatable="false"></string>
+
     <string name="app_name">MPin SDK Sample</string>
     <string name="message_no_camera_permission">No camera permission</string>
 

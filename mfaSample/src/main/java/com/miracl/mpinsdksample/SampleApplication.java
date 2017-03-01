@@ -24,9 +24,6 @@ import android.os.AsyncTask;
 import com.miracl.mpinsdk.MPinMFA;
 import com.miracl.mpinsdk.model.Status;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class SampleApplication extends Application {
 
     static {
@@ -49,10 +46,7 @@ public class SampleApplication extends Application {
                 sMPinMfa = new MPinMFA();
                 com.miracl.mpinsdk.model.Status status = sMPinMfa.init(null, SampleApplication.this);
                 if (status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-                    //TODO change with actual User-Agent for the sample
-                    Map<String, String> headers = new HashMap<>(1);
-                    headers.put("User-Agent", "com.miracl.android.tcbmfa/1.1.1 (android/6.0.1) build/101");
-                    sMPinMfa.addCustomHeaders(headers);
+                    sMPinMfa.setCid(getString(R.string.mpin_cid));
                 }
 
                 return status;
