@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">InApp Sample</string>
+    <string name="hint_enter_email">Enter email</string>
+    <string name="button_submit">Submit</string>
+    <string name="button_resend_email">Resend e-mail</string>
+    <string name="button_confirmed">Confirmed</string>
+    <string name="label_register">Register</string>
+    <string name="hint_setup_pin">Enter Pin</string>
+    <string name="button_ok">OK</string>
+    <string name="identity_created">Identity Created</string>
+    <string name="button_login">Login</string>
+    <string name="label_registration_successful">Registration Successful</string>
+
+    <!-- M-Pin configuration -->
+    <string name="mpin_cid" formatted="false" translatable="false">6e6a1d7a-4ecd-482a-becb-f0b4e266a5cc</string>
+    <string name="mpin_backend" formatted="false" translatable="false">https://api.mpin.io</string>
+    <string name="mpin_access_code_service_base_url" formatted="false" translatable="false">https://demo.trust.miracl.cloud</string>
+</resources>
