@@ -216,7 +216,7 @@ static jobject nGetSessionDetails(JNIEnv* env, jobject jobj, jlong jptr, jstring
 static jobject nAbortSession(JNIEnv* env, jobject jobj, jlong jptr, jstring jaccessCode)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
-    sdk->AbortSession(JavaToStdString(env, jaccessCode));
+    return MakeJavaStatus(env, sdk->AbortSession(JavaToStdString(env, jaccessCode)));
 }
 
 
