@@ -48,7 +48,7 @@ public class AccessCodeObtainingTask extends AsyncTask<Void, Void, Status> {
               .addConverterFactory(GsonConverterFactory.create(new Gson())).baseUrl(mAuthServiceUrl).build();
         } catch (IllegalArgumentException exception) {
             return new com.miracl.mpinsdk.model.Status(com.miracl.mpinsdk.model.Status.Code.HTTP_REQUEST_ERROR,
-              "Failed to validate access code");
+              "Invalid custom service URL");
         }
 
         AccessCodeServiceApi accessCodeServiceApi = retrofit.create(AccessCodeServiceApi.class);

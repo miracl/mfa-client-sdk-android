@@ -38,7 +38,7 @@ public interface AccessCodeServiceApi {
      *
      * @return ServiceConfiguration
      */
-    @GET("/authzurl")
+    @POST("/authzurl")
     Call<AuthorizeUrlInfo> getAuthURL();
 
     /**

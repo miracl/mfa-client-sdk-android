@@ -28,6 +28,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.miracl.mpinsdk.MPinMFA;
 import com.miracl.mpinsdk.model.Status;
@@ -55,8 +56,9 @@ public class LoginActivity extends AppCompatActivity implements EnterPinDialog.E
     @Override
     protected void onResume() {
         super.onResume();
-        getCurrentUserAndInit();
+        configureSdkAndCurrentUser();
     }
+
 
     @Override
     public void onPinEntered(final String pin) {
@@ -120,7 +122,7 @@ public class LoginActivity extends AppCompatActivity implements EnterPinDialog.E
 
     private void validateLogin(String authCode) {
         // We use the auth code from the sdk to validate the login with a demo service
-        final String clientService = getString(R.string.mpin_access_code_service_base_url);
+        final String clientService = getString(R.string.access_code_service_base_url);
         if (!clientService.isEmpty() && mCurrentUser != null && authCode != null) {
             new ValidateLoginTask(clientService, authCode, mCurrentUser.getId()) {
 
@@ -144,6 +146,31 @@ public class LoginActivity extends AppCompatActivity implements EnterPinDialog.E
     @Override
     public void onPinCanceled() {
 
+    }
+
+    private void configureSdkAndCurrentUser() {
+        new AsyncTask<Void, Void, Status>() {
+
+            @Override
+            protected com.miracl.mpinsdk.model.Status doInBackground(Void... params) {
+                MPinMFA mPinMfa = SampleApplication.getMfaSdk();
+                // Set the cid and the backend with which the SDK will be configured
+                mPinMfa.setCid(getString(R.string.mpin_cid));
+                return mPinMfa.setBackend(getString(R.string.mpin_backend));
+            }
+
+            @Override
+            protected void onPostExecute(com.miracl.mpinsdk.model.Status status) {
+                if (status != null && status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
+                    // If the backend and CID are set successfully we can check for a registered user
+                    getCurrentUserAndInit();
+                } else {
+                    Toast.makeText(LoginActivity.this,
+                      "The MPin SDK did not initialize properly. Check you backend and CID configuration", Toast.LENGTH_LONG)
+                      .show();
+                }
+            }
+        }.execute();
     }
 
     private void getCurrentUserAndInit() {
@@ -228,7 +255,7 @@ public class LoginActivity extends AppCompatActivity implements EnterPinDialog.E
 
     private void onLoginClick() {
         if (mCurrentUser != null) {
-            new AccessCodeObtainingTask(getString(R.string.mpin_access_code_service_base_url),
+            new AccessCodeObtainingTask(getString(R.string.access_code_service_base_url),
               new AccessCodeObtainingTask.Callback() {
 
                   @Override

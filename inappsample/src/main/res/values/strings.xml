@@ -12,7 +12,9 @@
     <string name="label_registration_successful">Registration Successful</string>
 
     <!-- M-Pin configuration -->
-    <string name="mpin_cid" formatted="false" translatable="false">6e6a1d7a-4ecd-482a-becb-f0b4e266a5cc</string>
-    <string name="mpin_backend" formatted="false" translatable="false">https://api.mpin.io</string>
-    <string name="mpin_access_code_service_base_url" formatted="false" translatable="false">https://demo.trust.miracl.cloud</string>
+    <string name="mpin_cid" formatted="false" translatable="false"></string>
+    <string name="mpin_backend" formatted="false" translatable="false"></string>
+
+    <!-- Custom service configuration -->
+    <string name="access_code_service_base_url" formatted="false" translatable="false"></string>
 </resources>

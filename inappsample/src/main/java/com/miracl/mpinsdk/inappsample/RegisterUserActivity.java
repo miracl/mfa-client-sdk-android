@@ -180,7 +180,7 @@ public class RegisterUserActivity extends AppCompatActivity implements View.OnCl
         }
 
         disableControls();
-        new AccessCodeObtainingTask(getString(R.string.mpin_access_code_service_base_url),
+        new AccessCodeObtainingTask(getString(R.string.access_code_service_base_url),
           new AccessCodeObtainingTask.Callback() {
 
               @Override

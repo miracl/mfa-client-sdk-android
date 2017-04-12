@@ -19,10 +19,8 @@
 package com.miracl.mpinsdk.inappsample;
 
 import android.app.Application;
-import android.os.AsyncTask;
 
 import com.miracl.mpinsdk.MPinMFA;
-import com.miracl.mpinsdk.model.Status;
 
 public class SampleApplication extends Application {
 
@@ -37,23 +35,9 @@ public class SampleApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        new AsyncTask<Void, Void, Status>() {
-
-            @Override
-            protected com.miracl.mpinsdk.model.Status doInBackground(Void... voids) {
-                // Init the MPinMfa without additional configuration
-                sMPinMfa = new MPinMFA();
-                com.miracl.mpinsdk.model.Status status = sMPinMfa.init(null, SampleApplication.this);
-                if (status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-                    // Set the cid and the backend with which the SDK will be configured
-                    sMPinMfa.setCid(getString(R.string.mpin_cid));
-                    status = sMPinMfa.setBackend(getString(R.string.mpin_backend));
-                }
-
-                return status;
-            }
-        }.execute();
+        // Init the MPinMfa without additional configuration
+        sMPinMfa = new MPinMFA();
+        sMPinMfa.init(null, SampleApplication.this);
     }
 
     public static MPinMFA getMfaSdk() {
