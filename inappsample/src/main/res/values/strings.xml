@@ -12,8 +12,8 @@
     <string name="label_registration_successful">Registration Successful</string>
 
     <!-- M-Pin configuration -->
+    <string name="mpin_backend" formatted="false" translatable="false">https://api.mpin.io</string>
     <string name="mpin_cid" formatted="false" translatable="false"></string>
-    <string name="mpin_backend" formatted="false" translatable="false"></string>
 
     <!-- Custom service configuration -->
     <string name="access_code_service_base_url" formatted="false" translatable="false"></string>
