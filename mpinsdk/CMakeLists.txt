@@ -5,11 +5,12 @@ cmake_minimum_required(VERSION 3.4.1)
 
 set(JNI_DIR ${CMAKE_SOURCE_DIR}/src/main/jni)
 set(CORE_DIR ${CMAKE_SOURCE_DIR}/../mpin-sdk-core)
-set(CORE_CRYPTO_DIR ${CMAKE_SOURCE_DIR}/../mpin-sdk-core/src/crypto)
+set(CORE_CRYPTO_DIR ${CMAKE_SOURCE_DIR}/../mpin-sdk-core/ext/milagro-crypto-c)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
 include_directories(
+    ${CORE_CRYPTO_DIR}/include
     ${CORE_DIR}/src
     ${CORE_DIR}/ext/cvshared/cpp/include
 )
@@ -17,28 +18,23 @@ include_directories(
 add_library(AndroidMpinSDK SHARED
     ${CORE_DIR}/ext/cvshared/cpp/CvString.cpp
     ${CORE_DIR}/ext/cvshared/cpp/CvXcode.cpp
-    ${CORE_CRYPTO_DIR}/aes.c
-    ${CORE_CRYPTO_DIR}/big.c
-    ${CORE_CRYPTO_DIR}/clint.h
-    ${CORE_CRYPTO_DIR}/DLLDefines.h
-    ${CORE_CRYPTO_DIR}/ecp.c
-    ${CORE_CRYPTO_DIR}/ecp2.c
-    ${CORE_CRYPTO_DIR}/ff.c
-    ${CORE_CRYPTO_DIR}/fp.c
-    ${CORE_CRYPTO_DIR}/fp12.c
-    ${CORE_CRYPTO_DIR}/fp2.c
-    ${CORE_CRYPTO_DIR}/fp4.c
-    ${CORE_CRYPTO_DIR}/gcm.c
-    ${CORE_CRYPTO_DIR}/hash.c
-    ${CORE_CRYPTO_DIR}/mpin.c
-    ${CORE_CRYPTO_DIR}/mpin.h
-    ${CORE_CRYPTO_DIR}/oct.c
-    ${CORE_CRYPTO_DIR}/pair.c
-    ${CORE_CRYPTO_DIR}/platform.h
-    ${CORE_CRYPTO_DIR}/rand.c
-    ${CORE_CRYPTO_DIR}/rom.c
-    ${CORE_CRYPTO_DIR}/version.c
-    ${CORE_CRYPTO_DIR}/version.h
+    ${CORE_CRYPTO_DIR}/src/aes.c
+    ${CORE_CRYPTO_DIR}/src/big.c
+    ${CORE_CRYPTO_DIR}/src/ecp.c
+    ${CORE_CRYPTO_DIR}/src/ecp2.c
+    ${CORE_CRYPTO_DIR}/src/ff.c
+    ${CORE_CRYPTO_DIR}/src/fp.c
+    ${CORE_CRYPTO_DIR}/src/fp12.c
+    ${CORE_CRYPTO_DIR}/src/fp2.c
+    ${CORE_CRYPTO_DIR}/src/fp4.c
+    ${CORE_CRYPTO_DIR}/src/gcm.c
+    ${CORE_CRYPTO_DIR}/src/hash.c
+    ${CORE_CRYPTO_DIR}/src/mpin.c
+    ${CORE_CRYPTO_DIR}/src/oct.c
+    ${CORE_CRYPTO_DIR}/src/pair.c
+    ${CORE_CRYPTO_DIR}/src/rand.c
+    ${CORE_CRYPTO_DIR}/src/randapi.c
+    ${CORE_CRYPTO_DIR}/src/rom.c
     ${CORE_DIR}/src/mfa_sdk.cpp
     ${CORE_DIR}/src/mpin_sdk.cpp
     ${CORE_DIR}/src/mpin_sdk_base.cpp
