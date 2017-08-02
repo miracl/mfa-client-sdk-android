@@ -23,6 +23,7 @@ import android.content.Context;
 import com.miracl.mpinsdk.model.OTP;
 import com.miracl.mpinsdk.model.ServiceDetails;
 import com.miracl.mpinsdk.model.SessionDetails;
+import com.miracl.mpinsdk.model.Signature;
 import com.miracl.mpinsdk.model.Status;
 import com.miracl.mpinsdk.model.User;
 
@@ -193,6 +194,13 @@ public class MPinMFA implements Closeable {
         return nFinishAuthenticationOTP(mPtr, user, pin, otp);
     }
 
+    public boolean verifyDocumentHash(String document, String hash) {
+        return nVerifyDocumentHash(mPtr, document, hash);
+    }
+
+    public Status sign(User user, String document, String pin, int epochTime, Signature signature) {
+        return nSign(mPtr, user, document, pin, epochTime, signature);
+    }
 
     public Status listUsers(List<User> users) {
         return nListUsers(mPtr, users);
@@ -268,6 +276,11 @@ public class MPinMFA implements Closeable {
 
     private native Status nFinishAuthenticationAuthCode(long ptr, User user, String pin, String accessCode,
                                                         StringBuilder authCode);
+
+
+    private native boolean nVerifyDocumentHash(long ptr, String document, String hash);
+
+    private native Status nSign(long ptr, User user, String document, String pin, int epochTime, Signature signature);
 
 
     private native Status nListUsers(long ptr, List<User> users);

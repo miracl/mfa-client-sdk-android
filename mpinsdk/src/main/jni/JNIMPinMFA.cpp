@@ -136,13 +136,13 @@ static void nClearUsers(JNIEnv* env, jobject jobj, jlong jptr)
 static jboolean nCanLogout(JNIEnv* env, jobject jobj, jlong jptr, jobject juser)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
-    return sdk->CanLogout(JavaToMPinUser(env, juser));
+    return (jboolean) sdk->CanLogout(JavaToMPinUser(env, juser));
 }
 
 static jboolean nLogout(JNIEnv* env, jobject jobj, jlong jptr, jobject juser)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
-    return sdk->Logout(JavaToMPinUser(env, juser));
+    return (jboolean) sdk->Logout(JavaToMPinUser(env, juser));
 }
 
 static jstring nGetClientParam(JNIEnv* env, jobject jobj, jlong jptr, jstring jkey)
@@ -319,6 +319,39 @@ static jobject nFinishAuthenticationOTP(JNIEnv* env, jobject jobj, jlong jptr, j
     return MakeJavaStatus(env, status);
 }
 
+
+static jboolean nVerifyDocumentHash(JNIEnv* env, jobject jobj,jlong jptr, jstring jdocument, jstring jhash)
+{
+    MfaSDK* sdk = (MfaSDK*) jptr;
+    return (jboolean) sdk->VerifyDocumentHash(JavaToStdString(env, jdocument),JavaToStdString(env, jhash));
+}
+
+static jobject nSign(JNIEnv* env, jobject jobj,jlong jptr, jobject juser, jstring jdocumentHash, jstring jpin, jint jepochTime, jobject jsignature)
+{
+    MfaSDK* sdk = (MfaSDK*) jptr;
+
+    MfaSDK::Signature signature;
+    MfaSDK::Status status = sdk->Sign(JavaToMPinUser(env, juser), JavaToStdString(env, jdocumentHash), JavaToStdString(env, jpin), jepochTime, signature);
+
+    if(status == MfaSDK::Status::OK)
+    {
+        jclass clsSignature = env->FindClass("com/miracl/mpinsdk/model/Signature");
+        jfieldID fidHash = env->GetFieldID(clsSignature, "hash", "Ljava/lang/String;");
+        jfieldID fidMpinId = env->GetFieldID(clsSignature, "mpinId", "Ljava/lang/String;");
+        jfieldID fidU = env->GetFieldID(clsSignature, "u", "Ljava/lang/String;");
+        jfieldID fidV = env->GetFieldID(clsSignature, "v", "Ljava/lang/String;");
+        jfieldID fidPublicKey = env->GetFieldID(clsSignature, "publicKey", "Ljava/lang/String;");
+
+        env->SetObjectField(jsignature, fidHash, env->NewStringUTF(signature.hash.c_str()));
+        env->SetObjectField(jsignature, fidMpinId, env->NewStringUTF(signature.mpinId.c_str()));
+        env->SetObjectField(jsignature, fidU, env->NewStringUTF(signature.u.c_str()));
+        env->SetObjectField(jsignature, fidV, env->NewStringUTF(signature.v.c_str()));
+        env->SetObjectField(jsignature, fidPublicKey, env->NewStringUTF(signature.publicKey.c_str()));
+    }
+
+    return MakeJavaStatus(env, status);
+}
+
 static jobject nListUsers(JNIEnv* env, jobject jobj, jlong jptr, jobject jusersList)
 {
 	MfaSDK* sdk = (MfaSDK*) jptr;
@@ -378,6 +411,8 @@ static JNINativeMethod g_methodsMfaSDK[] =
 	NATIVE_METHOD(nFinishAuthentication, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
 	NATIVE_METHOD(nFinishAuthenticationAuthCode, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishAuthenticationOTP, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Lcom/miracl/mpinsdk/model/OTP;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nVerifyDocumentHash, "(JLjava/lang/String;Ljava/lang/String;)Z"),
+    NATIVE_METHOD(nSign, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;ILcom/miracl/mpinsdk/model/Signature;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nListUsers, "(JLjava/util/List;)Lcom/miracl/mpinsdk/model/Status;")
 };
 
