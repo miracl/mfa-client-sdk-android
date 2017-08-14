@@ -74,4 +74,8 @@ std::string JavaToStdString(JNIEnv* env, jstring jstr);
 
 MPinSDK::UserPtr JavaToMPinUser(JNIEnv* env, jobject juser);
 
+std::string JavaByteArrayToStdString(JNIEnv* env, jbyteArray jByteArr);
+
+jbyteArray StdStringToJavaByteArray(JNIEnv* env, std::string& str);
+
 #endif // _JNI_COMMON_H_

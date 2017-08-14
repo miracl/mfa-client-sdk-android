@@ -118,6 +118,28 @@ std::string JavaToStdString(JNIEnv* env, jstring jstr)
 	return str;
 }
 
+std::string JavaByteArrayToStdString(JNIEnv* env, jbyteArray jByteArr)
+{
+    jbyte* bytes = env->GetByteArrayElements(jByteArr, NULL);
+    if (bytes != NULL)
+    {
+        std::string str( (char*) bytes);
+        env->ReleaseByteArrayElements(jByteArr, bytes, JNI_ABORT);
+        return str;
+    } else {
+        return std::string();
+    }
+
+}
+
+jbyteArray StdStringToJavaByteArray(JNIEnv* env, std::string& str)
+{
+    jsize length = (jsize) str.length();
+    jbyteArray strBytes = env->NewByteArray(length);
+    env->SetByteArrayRegion(strBytes, 0, length, (const jbyte *) str.c_str());
+    return strBytes;
+}
+
 MPinSDKBase::UserPtr JavaToMPinUser(JNIEnv* env, jobject juser)
 {
 	jclass clsUser = env->FindClass("com/miracl/mpinsdk/model/User");

@@ -194,12 +194,12 @@ public class MPinMFA implements Closeable {
         return nFinishAuthenticationOTP(mPtr, user, pin, otp);
     }
 
-    public boolean verifyDocumentHash(String document, String hash) {
+    public boolean verifyDocumentHash(String document, byte[] hash) {
         return nVerifyDocumentHash(mPtr, document, hash);
     }
 
-    public Status sign(User user, String document, String pin, int epochTime, Signature signature) {
-        return nSign(mPtr, user, document, pin, epochTime, signature);
+    public Status sign(User user, byte[] documentHash, String pin, int epochTime, Signature signature) {
+        return nSign(mPtr, user, documentHash, pin, epochTime, signature);
     }
 
     public Status listUsers(List<User> users) {
@@ -278,9 +278,9 @@ public class MPinMFA implements Closeable {
                                                         StringBuilder authCode);
 
 
-    private native boolean nVerifyDocumentHash(long ptr, String document, String hash);
+    private native boolean nVerifyDocumentHash(long ptr, String document, byte[] hash);
 
-    private native Status nSign(long ptr, User user, String document, String pin, int epochTime, Signature signature);
+    private native Status nSign(long ptr, User user, byte[] documentHash, String pin, int epochTime, Signature signature);
 
 
     private native Status nListUsers(long ptr, List<User> users);

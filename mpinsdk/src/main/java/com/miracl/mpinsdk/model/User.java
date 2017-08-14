@@ -28,8 +28,6 @@ public class User implements Closeable {
         INVALID, STARTED_REGISTRATION, ACTIVATED, REGISTERED, BLOCKED
     }
 
-    private boolean isUserSelected;
-
     private long mPtr;
 
 
@@ -62,20 +60,16 @@ public class User implements Closeable {
         return nGetBackend(mPtr);
     }
 
-    public boolean isUserSelected() {
-        return isUserSelected;
-    }
-
-    public void setUserSelected(boolean isUserSelected) {
-        this.isUserSelected = isUserSelected;
-    }
-
     public String getCustomerId() {
         return nGetCustomerId(mPtr);
     }
 
     public String getAppId() {
         return nGetAppId(mPtr);
+    }
+
+    public boolean canSign() {
+        return nCanSign(mPtr);
     }
 
 
@@ -116,4 +110,6 @@ public class User implements Closeable {
     private native String nGetCustomerId(long ptr);
 
     private native String nGetAppId(long ptr);
+
+    private native boolean nCanSign(long ptr);
 }
