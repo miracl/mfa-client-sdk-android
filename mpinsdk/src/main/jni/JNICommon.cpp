@@ -121,9 +121,10 @@ std::string JavaToStdString(JNIEnv* env, jstring jstr)
 std::string JavaByteArrayToStdString(JNIEnv* env, jbyteArray jByteArr)
 {
     jbyte* bytes = env->GetByteArrayElements(jByteArr, NULL);
+    jsize length = env->GetArrayLength(jByteArr);
     if (bytes != NULL)
     {
-        std::string str( (char*) bytes);
+        std::string str((char *) bytes, (unsigned long) length);
         env->ReleaseByteArrayElements(jByteArr, bytes, JNI_ABORT);
         return str;
     } else {
