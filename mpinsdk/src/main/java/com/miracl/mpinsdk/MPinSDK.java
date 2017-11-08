@@ -158,8 +158,12 @@ public class MPinSDK implements Closeable {
         return nConfirmRegistration(mPtr, user, pushToken);
     }
 
-    public Status finishRegistration(User user, String pin) {
-        return nFinishRegistration(mPtr, user, pin);
+    public Status finishRegistration(User user, String singleFactor) {
+        return nFinishRegistration(mPtr, user, singleFactor);
+    }
+
+    public Status finishRegistration(User user, String[] multiFactor) {
+        return nFinishRegistrationMultiFactor(mPtr, user, multiFactor);
     }
 
 
@@ -171,20 +175,36 @@ public class MPinSDK implements Closeable {
         return nCheckAccessNumber(mPtr, accessNumber);
     }
 
-    public Status finishAuthentication(User user, String pin) {
-        return nFinishAuthentication(mPtr, user, pin);
+    public Status finishAuthentication(User user, String singleFactor) {
+        return nFinishAuthentication(mPtr, user, singleFactor);
     }
 
-    public Status finishAuthentication(User user, String pin, StringBuilder authResultData) {
-        return nFinishAuthenticationResultData(mPtr, user, pin, authResultData);
+    public Status finishAuthentication(User user, String[] multiFactor) {
+        return nFinishAuthenticationMultiFactor(mPtr, user, multiFactor);
     }
 
-    public Status finishAuthenticationOTP(User user, String pin, OTP otp) {
-        return nFinishAuthenticationOTP(mPtr, user, pin, otp);
+    public Status finishAuthentication(User user, String singleFactor, StringBuilder authResultData) {
+        return nFinishAuthenticationResultData(mPtr, user, singleFactor, authResultData);
     }
 
-    public Status finishAuthenticationAN(User user, String pin, String accessNumber) {
-        return nFinishAuthenticationAN(mPtr, user, pin, accessNumber);
+    public Status finishAuthentication(User user, String[] multiFactor, StringBuilder authResultData) {
+        return nFinishAuthenticationResultDataMultiFactor(mPtr, user, multiFactor, authResultData);
+    }
+
+    public Status finishAuthenticationOTP(User user, String singleFactor, OTP otp) {
+        return nFinishAuthenticationOTP(mPtr, user, singleFactor, otp);
+    }
+
+    public Status finishAuthenticationOTP(User user, String[] multiFactor, OTP otp) {
+        return nFinishAuthenticationOTPMultiFactor(mPtr, user, multiFactor, otp);
+    }
+
+    public Status finishAuthenticationAN(User user, String singleFactor, String accessNumber) {
+        return nFinishAuthenticationAN(mPtr, user, singleFactor, accessNumber);
+    }
+
+    public Status finishAuthenticationAN(User user, String[] multiFactor, String accessNumber) {
+        return nFinishAuthenticationANMultiFactor(mPtr, user, multiFactor, accessNumber);
     }
 
     public Status listUsers(List<User> users) {
@@ -252,20 +272,31 @@ public class MPinSDK implements Closeable {
 
     private native Status nConfirmRegistration(long ptr, User user, String pushToken);
 
-    private native Status nFinishRegistration(long ptr, User user, String pin);
+    private native Status nFinishRegistration(long ptr, User user, String singleFactor);
+
+    private native Status nFinishRegistrationMultiFactor(long ptr, User user, String[] multiFactors);
 
 
     private native Status nStartAuthentication(long ptr, User user);
 
     private native Status nCheckAccessNumber(long ptr, String accessNumber);
 
-    private native Status nFinishAuthentication(long ptr, User user, String pin);
+    private native Status nFinishAuthentication(long ptr, User user, String singleFactor);
 
-    private native Status nFinishAuthenticationResultData(long ptr, User user, String pin, StringBuilder authResultData);
+    private native Status nFinishAuthenticationMultiFactor(long ptr, User user, String[] multiFactor);
 
-    private native Status nFinishAuthenticationOTP(long ptr, User user, String pin, OTP otp);
+    private native Status nFinishAuthenticationResultData(long ptr, User user, String singleFactor, StringBuilder authResultData);
 
-    private native Status nFinishAuthenticationAN(long ptr, User user, String pin, String accessNumber);
+    private native Status nFinishAuthenticationResultDataMultiFactor(long ptr, User user, String[] multiFactor,
+                                                                     StringBuilder authResultData);
+
+    private native Status nFinishAuthenticationOTP(long ptr, User user, String singleFactor, OTP otp);
+
+    private native Status nFinishAuthenticationOTPMultiFactor(long ptr, User user, String[] multiFactor, OTP otp);
+
+    private native Status nFinishAuthenticationAN(long ptr, User user, String singleFactor, String accessNumber);
+
+    private native Status nFinishAuthenticationANMultiFactor(long ptr, User user, String[] multiFactor, String accessNumber);
 
 
     private native Status nListUsers(long ptr, List<User> users);

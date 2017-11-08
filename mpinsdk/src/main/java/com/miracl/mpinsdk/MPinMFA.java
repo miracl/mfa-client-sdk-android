@@ -165,8 +165,12 @@ public class MPinMFA implements Closeable {
         return nConfirmRegistration(mPtr, user);
     }
 
-    public Status finishRegistration(User user, String pin) {
-        return nFinishRegistration(mPtr, user, pin);
+    public Status finishRegistration(User user, String singleFactor) {
+        return nFinishRegistration(mPtr, user, singleFactor);
+    }
+
+    public Status finishRegistration(User user, String[] multiFactor) {
+        return nFinishRegistrationMultiFactor(mPtr, user, multiFactor);
     }
 
 
@@ -182,24 +186,40 @@ public class MPinMFA implements Closeable {
         return nStartAuthenticationOTP(mPtr, user);
     }
 
-    public Status finishAuthentication(User user, String pin, String accessCode) {
-        return nFinishAuthentication(mPtr, user, pin, accessCode);
+    public Status finishAuthentication(User user, String singleFactor, String accessCode) {
+        return nFinishAuthentication(mPtr, user, singleFactor, accessCode);
     }
 
-    public Status finishAuthentication(User user, String pin, String accessCode, StringBuilder authCode) {
-        return nFinishAuthenticationAuthCode(mPtr, user, pin, accessCode, authCode);
+    public Status finishAuthentication(User user, String[] multiFactor, String accessCode) {
+        return nFinishAuthenticationMultiFactor(mPtr, user, multiFactor, accessCode);
     }
 
-    public Status finishAuthenticationOtp(User user, String pin, OTP otp) {
-        return nFinishAuthenticationOTP(mPtr, user, pin, otp);
+    public Status finishAuthentication(User user, String singleFactor, String accessCode, StringBuilder authCode) {
+        return nFinishAuthenticationAuthCode(mPtr, user, singleFactor, accessCode, authCode);
+    }
+
+    public Status finishAuthentication(User user, String[] multiFactor, String accessCode, StringBuilder authCode) {
+        return nFinishAuthenticationAuthCodeMultiFactor(mPtr, user, multiFactor, accessCode, authCode);
+    }
+
+    public Status finishAuthenticationOtp(User user, String singleFactor, OTP otp) {
+        return nFinishAuthenticationOTP(mPtr, user, singleFactor, otp);
+    }
+
+    public Status finishAuthenticationOtp(User user, String[] multiFactor, OTP otp) {
+        return nFinishAuthenticationOTPMultiFactor(mPtr, user, multiFactor, otp);
     }
 
     public boolean verifyDocumentHash(String document, byte[] hash) {
         return nVerifyDocumentHash(mPtr, document, hash);
     }
 
-    public Status sign(User user, byte[] documentHash, String pin, int epochTime, Signature signature) {
-        return nSign(mPtr, user, documentHash, pin, epochTime, signature);
+    public Status sign(User user, byte[] documentHash, String singleFactor, int epochTime, Signature signature) {
+        return nSign(mPtr, user, documentHash, singleFactor, epochTime, signature);
+    }
+
+    public Status sign(User user, byte[] documentHash, String[] multiFactor, int epochTime, Signature signature) {
+        return nSignMultiFactor(mPtr, user, documentHash, multiFactor, epochTime, signature);
     }
 
     public Status listUsers(List<User> users) {
@@ -261,7 +281,9 @@ public class MPinMFA implements Closeable {
 
     private native Status nConfirmRegistration(long ptr, User user);
 
-    private native Status nFinishRegistration(long ptr, User user, String pin);
+    private native Status nFinishRegistration(long ptr, User user, String singleFactor);
+
+    private native Status nFinishRegistrationMultiFactor(long ptr, User user, String[] multiFactor);
 
 
     private native Status nGetAccessCode(long ptr, String authUrl, StringBuilder accessCode);
@@ -270,17 +292,28 @@ public class MPinMFA implements Closeable {
 
     private native Status nStartAuthenticationOTP(long ptr, User user);
 
-    private native Status nFinishAuthentication(long ptr, User user, String pin, String accessCode);
+    private native Status nFinishAuthentication(long ptr, User user, String singleFactor, String accessCode);
 
-    private native Status nFinishAuthenticationOTP(long ptr, User user, String pin, OTP otp);
+    private native Status nFinishAuthenticationMultiFactor(long ptr, User user, String[] multiFactor, String accessCode);
 
-    private native Status nFinishAuthenticationAuthCode(long ptr, User user, String pin, String accessCode,
+    private native Status nFinishAuthenticationOTP(long ptr, User user, String singleFactor, OTP otp);
+
+    private native Status nFinishAuthenticationOTPMultiFactor(long ptr, User user, String[] multiFactor, OTP otp);
+
+    private native Status nFinishAuthenticationAuthCode(long ptr, User user, String singleFactor, String accessCode,
                                                         StringBuilder authCode);
+
+    private native Status nFinishAuthenticationAuthCodeMultiFactor(long ptr, User user, String[] multiFactor, String accessCode,
+                                                                   StringBuilder authCode);
 
 
     private native boolean nVerifyDocumentHash(long ptr, String document, byte[] hash);
 
-    private native Status nSign(long ptr, User user, byte[] documentHash, String pin, int epochTime, Signature signature);
+    private native Status nSign(long ptr, User user, byte[] documentHash, String singleFactor, int epochTime,
+                                Signature signature);
+
+    private native Status nSignMultiFactor(long ptr, User user, byte[] documentHash, String[] multiFactor, int epochTime,
+                                           Signature signature);
 
 
     private native Status nListUsers(long ptr, List<User> users);

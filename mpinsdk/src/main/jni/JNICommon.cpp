@@ -141,6 +141,20 @@ jbyteArray StdStringToJavaByteArray(JNIEnv* env, std::string& str)
     return strBytes;
 }
 
+MPinSDK::MultiFactor JavaStringArrayToMultiFactor(JNIEnv* env, jobjectArray jstringArray)
+{
+    int factorCount = env->GetArrayLength(jstringArray);
+    MPinSDK::MultiFactor multiFactor;
+
+    for (int i=0; i<factorCount; i++)
+    {
+        jstring jfactor = (jstring) (env->GetObjectArrayElement(jstringArray, i));
+        multiFactor.push_back(JavaToStdString(env, jfactor));
+    }
+
+    return multiFactor;
+}
+
 MPinSDKBase::UserPtr JavaToMPinUser(JNIEnv* env, jobject juser)
 {
 	jclass clsUser = env->FindClass("com/miracl/mpinsdk/model/User");
