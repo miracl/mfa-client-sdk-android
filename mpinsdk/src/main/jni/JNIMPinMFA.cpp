@@ -199,6 +199,7 @@ static jobject nGetSessionDetails(JNIEnv* env, jobject jobj, jlong jptr, jstring
         jfieldID fIdCustomerId = env->GetFieldID(clsSessionDetails, "customerId", "Ljava/lang/String;");
         jfieldID fIdCustomerName = env->GetFieldID(clsSessionDetails, "customerName", "Ljava/lang/String;");
         jfieldID fIdCustomerIconUrl = env->GetFieldID(clsSessionDetails, "customerIconUrl", "Ljava/lang/String;");
+        jfieldID fIdRegisterOnly = env->GetFieldID(clsSessionDetails, "registerOnly", "Z");
 
         env->SetObjectField(jsessionDetails, fIdPrerollId, env->NewStringUTF(sessionDetails.prerollId.c_str()));
         env->SetObjectField(jsessionDetails, fIdAppName, env->NewStringUTF(sessionDetails.appName.c_str()));
@@ -206,6 +207,7 @@ static jobject nGetSessionDetails(JNIEnv* env, jobject jobj, jlong jptr, jstring
         env->SetObjectField(jsessionDetails, fIdCustomerId, env->NewStringUTF(sessionDetails.customerId.c_str()));
         env->SetObjectField(jsessionDetails, fIdCustomerName, env->NewStringUTF(sessionDetails.customerName.c_str()));
         env->SetObjectField(jsessionDetails, fIdCustomerIconUrl, env->NewStringUTF(sessionDetails.customerIconUrl.c_str()));
+        env->SetBooleanField(jsessionDetails, fIdRegisterOnly, (jboolean) sessionDetails.registerOnly);
     }
 
     return MakeJavaStatus(env, status);

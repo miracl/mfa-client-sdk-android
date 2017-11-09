@@ -31,4 +31,6 @@ public class SessionDetails {
     public String customerName;
 
     public String customerIconUrl;
+
+    public boolean registerOnly;
 }
