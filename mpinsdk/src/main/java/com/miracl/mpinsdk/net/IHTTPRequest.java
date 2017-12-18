@@ -1,4 +1,4 @@
-/***************************************************************
+/* **************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,47 +22,47 @@ package com.miracl.mpinsdk.net;
 import java.util.Hashtable;
 
 
-public interface IHTTPRequest {
+interface IHTTPRequest {
 
-    public static final int GET     = 0;
-    public static final int POST    = 1;
-    public static final int PUT     = 2;
-    public static final int DELETE  = 3;
-    public static final int OPTIONS = 4;
+    int GET     = 0;
+    int POST    = 1;
+    int PUT     = 2;
+    int DELETE  = 3;
+    int OPTIONS = 4;
 
-    public static final String HTTP_GET     = "GET";
-    public static final String HTTP_POST    = "POST";
-    public static final String HTTP_PUT     = "PUT";
-    public static final String HTTP_DELETE  = "DELETE";
-    public static final String HTTP_OPTIONS = "OPTIONS";
-    public static final String HTTP_PATCH   = "PATCH";
+    String HTTP_GET     = "GET";
+    String HTTP_POST    = "POST";
+    String HTTP_PUT     = "PUT";
+    String HTTP_DELETE  = "DELETE";
+    String HTTP_OPTIONS = "OPTIONS";
+    String HTTP_PATCH   = "PATCH";
 
-    public static final int DEFAULT_TIMEOUT = 10 * 1000;
-
-
-    public void SetHeaders(Hashtable<String, String> headers);
+    int DEFAULT_TIMEOUT = 10 * 1000;
 
 
-    public void SetQueryParams(Hashtable<String, String> queryParams);
+    void SetHeaders(Hashtable<String, String> headers);
 
 
-    public void SetContent(String data);
+    void SetQueryParams(Hashtable<String, String> queryParams);
 
 
-    public void SetTimeout(int seconds);
+    void SetContent(String data);
 
 
-    public boolean Execute(int method, String url);
+    void SetTimeout(int seconds);
 
 
-    public String GetExecuteErrorMessage();
+    boolean Execute(int method, String url);
 
 
-    public int GetHttpStatusCode();
+    String GetExecuteErrorMessage();
 
 
-    public Hashtable<String, String> GetResponseHeaders();
+    int GetHttpStatusCode();
 
 
-    public String GetResponseData();
+    Hashtable<String, String> GetResponseHeaders();
+
+
+    String GetResponseData();
 }

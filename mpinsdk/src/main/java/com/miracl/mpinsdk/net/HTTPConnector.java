@@ -1,4 +1,4 @@
-/***************************************************************
+/* **************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,7 +19,6 @@
 package com.miracl.mpinsdk.net;
 
 
-import android.net.Uri;
 import android.text.TextUtils;
 
 import java.io.BufferedWriter;
@@ -30,7 +29,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -42,18 +40,15 @@ public class HTTPConnector implements IHTTPRequest {
 
     private final static String OS_CLASS_HEADER = "X-MIRACL-OS-Class";
     private final static String OS_CLASS_VALUE  = "android";
+
     private Hashtable<String, String> requestHeaders;
     private Hashtable<String, String> queryParams;
     private String                    requestBody;
-    private int timeout = DEFAULT_TIMEOUT;
+    private int                       timeout;
     private String                    errorMessage;
     private int                       statusCode;
     private Hashtable<String, String> responseHeaders;
     private String                    responseData;
-
-    public HTTPConnector() {
-        super();
-    }
 
     private static String toString(InputStream is) throws IOException {
         InputStreamReader isr = null;
@@ -61,9 +56,10 @@ public class HTTPConnector implements IHTTPRequest {
             isr = new InputStreamReader(is, "UTF-8");
             char[] buf = new char[512];
             StringBuilder str = new StringBuilder();
-            int i = 0;
-            while ((i = isr.read(buf)) != -1)
+            int i;
+            while ((i = isr.read(buf)) != -1) {
                 str.append(buf, 0, i);
+            }
             return str.toString();
         } finally {
             if (isr != null) {
@@ -72,124 +68,9 @@ public class HTTPConnector implements IHTTPRequest {
         }
     }
 
-    // / only for test !!!!
-    public String getContent() {
-
-        return requestBody;
-    }
-
-    public Hashtable<String, String> RequestHeaders() {
-        return requestHeaders;
-    }
-
-    protected HttpURLConnection getConnection(String serviceURL, boolean output)
-            throws MalformedURLException, IOException {
-        if (serviceURL.startsWith("/")) {
-            serviceURL = "http://ec2-54-77-232-113.eu-west-1.compute.amazonaws.com" + serviceURL;
-        }
-
-        HttpURLConnection httpConnection = (HttpURLConnection) new URL(serviceURL).openConnection();
-        httpConnection.setDoInput(true);
-        httpConnection.setDoOutput(output);
-        return httpConnection;
-    }
-
-    protected String HttpMethodMapper(int method) {
-        switch (method) {
-            case GET:
-                return HTTP_GET;
-            case POST:
-                return HTTP_POST;
-            case PUT:
-                return HTTP_PUT;
-            case DELETE:
-                return HTTP_DELETE;
-            case OPTIONS:
-                return HTTP_OPTIONS;
-            default:
-                return HTTP_PATCH;
-
-        }
-    }
-
-    protected String sendRequest(String serviceURL, String http_method, String requestBody,
-                                 Hashtable<String, String> requestProperties) throws IOException, HTTPErrorException {
-
-        HttpURLConnection connection = null;
-        DataOutputStream dos = null;
-        String response = "200 OK";
-
-        try {
-            connection = getConnection(serviceURL, !TextUtils.isEmpty(requestBody));
-
-            connection.setRequestMethod(http_method);
-            connection.setConnectTimeout(timeout);
-
-            if (requestProperties != null) {
-                if (!requestProperties.isEmpty()) {
-                    Enumeration<String> keyEnum = requestProperties.keys();
-                    while (keyEnum.hasMoreElements()) {
-                        String key = keyEnum.nextElement();
-                        connection.setRequestProperty(key, requestProperties.get(key));
-                    }
-                }
-            }
-
-            connection.setRequestProperty(OS_CLASS_HEADER, OS_CLASS_VALUE);
-
-            if (!TextUtils.isEmpty(requestBody)) {
-                dos = new DataOutputStream(connection.getOutputStream());
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dos, "UTF-8"));
-                writer.write(requestBody);
-                writer.close();
-            }
-
-            // Starts the query
-            connection.connect();
-
-            try {
-                statusCode = connection.getResponseCode();
-            } catch (IOException e) {
-                statusCode = connection.getResponseCode();
-                if (statusCode != 401) {
-                    throw e;
-                }
-            }
-
-            responseHeaders = new Hashtable<String, String>();
-            Map<String, List<String>> map = connection.getHeaderFields();
-            for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-                List<String> propertyList = entry.getValue();
-                String properties = "";
-                for (String s : propertyList) {
-                    properties += s;
-                }
-                String key = entry.getKey();
-                if (key == null)
-                    continue;
-                responseHeaders.put(entry.getKey(), properties);
-            }
-            response = toString(connection.getInputStream());
-
-        } finally {
-            if (dos != null) {
-                dos.close();
-            }
-            if (connection != null) {
-                connection.disconnect();
-            }
-        }
-
-        return response;
-    }
-
-    protected String sendRequest(String serviceURL, String http_method, String requestBody)
-            throws IOException, HTTPErrorException {
-        return sendRequest(serviceURL, http_method, requestBody, null);
-    }
-
-    protected String sendRequest(String serviceURL, String http_method) throws IOException, HTTPErrorException {
-        return sendRequest(serviceURL, http_method, null);
+    public HTTPConnector() {
+        super();
+        timeout = DEFAULT_TIMEOUT;
     }
 
     @Override
@@ -209,33 +90,19 @@ public class HTTPConnector implements IHTTPRequest {
 
     @Override
     public void SetTimeout(int seconds) {
-        if (seconds <= 0)
+        if (seconds <= 0) {
             throw new IllegalArgumentException();
+        }
         this.timeout = seconds;
     }
 
     @Override
     public boolean Execute(int method, String url) {
-        if (TextUtils.isEmpty(url))
+        if (TextUtils.isEmpty(url)) {
             throw new IllegalArgumentException();
-
-        String fullUrl = url;
-        if (queryParams != null) {
-            if (!queryParams.isEmpty()) {
-                Enumeration<String> keyEnum = queryParams.keys();
-                fullUrl += "?";
-                while (keyEnum.hasMoreElements()) {
-                    String key = keyEnum.nextElement();
-                    fullUrl = key + "=" + queryParams.get(key) + "&";
-                }
-                fullUrl = fullUrl.substring(0, fullUrl.length() - 1);
-            }
         }
 
-        // TODO temporary hack
-        Uri uri = Uri.parse(fullUrl);
-        if ("wss".equals(uri.getScheme()))
-            fullUrl = uri.buildUpon().scheme("https").build().toString();
+        String fullUrl = addQueryParamsToUrl(url);
 
         try {
             responseData = sendRequest(fullUrl, HttpMethodMapper(method), requestBody, requestHeaders);
@@ -271,49 +138,125 @@ public class HTTPConnector implements IHTTPRequest {
         return responseData;
     }
 
-    @SuppressWarnings("serial")
-    public class HTTPErrorException extends Exception {
+    private String sendRequest(String serviceURL, String httpMethod, String requestBody,
+                               Hashtable<String, String> requestProperties) throws IOException {
 
-        private int statusCode;
+        HttpURLConnection connection = null;
+        DataOutputStream dos = null;
+        String response;
 
+        try {
+            connection = getConnection(serviceURL, !TextUtils.isEmpty(requestBody));
 
-        public HTTPErrorException() {
-            // TODO Auto-generated constructor stub
+            connection.setRequestMethod(httpMethod);
+            connection.setConnectTimeout(timeout);
+
+            // Set request properties
+            connection.setRequestProperty(OS_CLASS_HEADER, OS_CLASS_VALUE);
+            if (requestProperties != null && !requestProperties.isEmpty()) {
+
+                Enumeration<String> keyEnum = requestProperties.keys();
+                while (keyEnum.hasMoreElements()) {
+                    String key = keyEnum.nextElement();
+                    connection.setRequestProperty(key, requestProperties.get(key));
+                }
+            }
+
+            // Set request body
+            if (!TextUtils.isEmpty(requestBody)) {
+                dos = new DataOutputStream(connection.getOutputStream());
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dos, "UTF-8"));
+                writer.write(requestBody);
+                writer.close();
+            }
+
+            // Starts the query
+            connection.connect();
+
+            try {
+                statusCode = connection.getResponseCode();
+            } catch (IOException e) {
+                statusCode = connection.getResponseCode();
+                if (statusCode != 401) {
+                    throw e;
+                }
+            }
+
+            setResponseHeaders(connection.getHeaderFields());
+
+            response = toString(connection.getInputStream());
+        } finally {
+            if (dos != null) {
+                dos.close();
+            }
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
 
+        return response;
+    }
 
-        public HTTPErrorException(String message) {
-            super(message);
-            // TODO Auto-generated constructor stub
-        }
+    private void setResponseHeaders(Map<String, List<String>> headers) {
+        responseHeaders = new Hashtable<>();
 
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+            String key = entry.getKey();
 
-        public HTTPErrorException(String message, int statusCode) {
-            super(message);
-            setStatusCode(statusCode);
-        }
+            if (key != null) {
+                List<String> propertyList = entry.getValue();
+                StringBuilder properties = new StringBuilder();
 
+                for (String property : propertyList) {
+                    properties.append(property);
+                }
 
-        public HTTPErrorException(Throwable cause) {
-            super(cause);
-            // TODO Auto-generated constructor stub
-        }
-
-
-        public HTTPErrorException(String message, Throwable cause) {
-            super(message, cause);
-            // TODO Auto-generated constructor stub
-        }
-
-
-        public int getStatusCode() {
-            return statusCode;
-        }
-
-
-        public void setStatusCode(int statusCode) {
-            this.statusCode = statusCode;
+                responseHeaders.put(entry.getKey(), properties.toString());
+            }
         }
     }
 
+    private HttpURLConnection getConnection(String serviceURL, boolean output) throws IOException {
+
+        HttpURLConnection httpConnection = (HttpURLConnection) new URL(serviceURL).openConnection();
+        httpConnection.setDoInput(true);
+        httpConnection.setDoOutput(output);
+        return httpConnection;
+    }
+
+    private String HttpMethodMapper(int method) {
+        switch (method) {
+            case GET:
+                return HTTP_GET;
+            case POST:
+                return HTTP_POST;
+            case PUT:
+                return HTTP_PUT;
+            case DELETE:
+                return HTTP_DELETE;
+            case OPTIONS:
+                return HTTP_OPTIONS;
+            default:
+                return HTTP_PATCH;
+        }
+    }
+
+    private String addQueryParamsToUrl(String url) {
+        StringBuilder urlBuilder = new StringBuilder(url);
+
+        if (queryParams != null && !queryParams.isEmpty()) {
+            Enumeration<String> keyEnum = queryParams.keys();
+            urlBuilder.append("?");
+
+            while (keyEnum.hasMoreElements()) {
+                String key = keyEnum.nextElement();
+                urlBuilder.append(key).append("=").append(queryParams.get(key));
+
+                if (keyEnum.hasMoreElements()) {
+                    urlBuilder.append("&");
+                }
+            }
+        }
+        return urlBuilder.toString();
+    }
 }
