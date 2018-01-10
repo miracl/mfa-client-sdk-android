@@ -41,7 +41,7 @@ public class AccessCodeObtainingTask extends AsyncTask<Void, Void, Status> {
 
     @Override
     protected com.miracl.mpinsdk.model.Status doInBackground(Void... voids) {
-        MPinMFA mfaSdk = SampleApplication.getMfaSdk();
+        MPinMFA mfaSdk = SampleApplication.getMfaSdk().getMfaSdk();
         Retrofit retrofit;
         try {
             retrofit = new Retrofit.Builder().client(new OkHttpClient())

@@ -21,16 +21,23 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class ValidateLoginTask extends AsyncTask<Void, Void, Boolean> {
 
+    public interface ValidationListener {
+
+        void onValidate(boolean isSuccessful);
+    }
+
     private static final int HTTP_CODE_OK = 200;
 
-    private String mAuthServiceUrl;
-    private String mAuthCode;
-    private String mUserId;
+    private String             mAuthServiceUrl;
+    private String             mAuthCode;
+    private String             mUserId;
+    private ValidationListener mListener;
 
-    public ValidateLoginTask(String authServiceUrl, String authCode, String userId) {
+    public ValidateLoginTask(String authServiceUrl, String authCode, String userId, ValidationListener listener) {
         mAuthServiceUrl = authServiceUrl;
         mAuthCode = authCode;
         mUserId = userId;
+        mListener = listener;
     }
 
     @Override
@@ -52,6 +59,14 @@ public class ValidateLoginTask extends AsyncTask<Void, Void, Boolean> {
             return responseSetAuthToken.code() == HTTP_CODE_OK;
         } catch (IOException e) {
             return false;
+        }
+    }
+
+    @Override
+    protected void onPostExecute(Boolean isSuccessful) {
+        super.onPostExecute(isSuccessful);
+        if (mListener != null) {
+            mListener.onValidate(isSuccessful);
         }
     }
 }

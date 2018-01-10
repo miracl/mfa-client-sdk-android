@@ -727,6 +727,37 @@ public class MPinMfaAsync {
     }
 
     /**
+     * Finish the authentication process for a user that has started authentication and obtain authentaction code for it.
+     * Should be called after {@link #startAuthentication(User, String, Callback)} with the same access code. If the same
+     * access code is not valid, the authentication process should be started again with a new valid access code.
+     *
+     * @param user
+     *   The user for which an authentication is started
+     * @param pin
+     *   The user's pin
+     * @param accessCode
+     *   A valid access code, the same one used for starting the authentication
+     * @param callback
+     *   Callback for the operation with the authentication code
+     * @see #startAuthentication(User, String, Callback)
+     */
+    public void finishAuthenticationAuthCode(@NonNull final User user, @NonNull final String pin,
+                                             @NonNull final String accessCode, @NonNull final Callback<String> callback) {
+        mWorkerHandler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                StringBuilder authCode = new StringBuilder();
+                Status status = mMfaSdk.finishAuthentication(user, pin, accessCode, authCode);
+                if (status.getStatusCode() == Status.Code.OK) {
+                    mMfaInfoCache.putLastLoggedInUser(user);
+                }
+                callback.onResult(status, authCode.toString());
+            }
+        });
+    }
+
+    /**
      * Start an authentication process for a user to receive a one time password.
      *
      * @param user
@@ -902,6 +933,13 @@ public class MPinMfaAsync {
                 callback.onResult(new Status(Status.Code.OK, ""), mMfaSdk);
             }
         });
+    }
+
+    /**
+     * Obtain a reference to the {@link MPinMFA} associated with this instance.
+     */
+    public MPinMFA getMfaSdk() {
+        return mMfaSdk;
     }
 
     /**

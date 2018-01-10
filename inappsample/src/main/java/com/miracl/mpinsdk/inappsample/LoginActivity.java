@@ -1,4 +1,4 @@
-/***************************************************************
+/* **************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,9 +21,9 @@ package com.miracl.mpinsdk.inappsample;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.util.Pair;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -31,6 +31,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.miracl.mpinsdk.MPinMFA;
+import com.miracl.mpinsdk.MPinMfaAsync;
 import com.miracl.mpinsdk.model.Status;
 import com.miracl.mpinsdk.model.User;
 
@@ -62,72 +63,75 @@ public class LoginActivity extends AppCompatActivity implements EnterPinDialog.E
 
     @Override
     public void onPinEntered(final String pin) {
-        new AsyncTask<Void, Void, Status>() {
+        final String accessCode = SampleApplication.getCurrentAccessCode();
+        if (mCurrentUser != null && accessCode != null) {
+            SampleApplication.getMfaSdk().startAuthentication(mCurrentUser, accessCode, new MPinMfaAsync.Callback<Void>() {
 
-            // The auth code given from the sdk on successful authentication
-            private StringBuilder authCode;
+                @Override
+                protected void onSuccess(@Nullable Void result) {
+                    SampleApplication.getMfaSdk()
+                      .finishAuthenticationAuthCode(mCurrentUser, pin, accessCode, new MPinMfaAsync.Callback<String>() {
 
-            @Override
-            protected com.miracl.mpinsdk.model.Status doInBackground(Void... voids) {
-                authCode = new StringBuilder();
-                MPinMFA mPinMfa = SampleApplication.getMfaSdk();
-                String accessCode = SampleApplication.getCurrentAccessCode();
-                if (mCurrentUser != null && accessCode != null) {
-                    // Start the authentication process with the scanned access code and a registered user
-                    com.miracl.mpinsdk.model.Status startAuthenticationStatus = mPinMfa
-                      .startAuthentication(mCurrentUser, accessCode);
-                    if (startAuthenticationStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-                        // Finish the authentication with the user's pin
-                        return mPinMfa.finishAuthentication(mCurrentUser, pin, accessCode, authCode);
-                    } else {
-                        return startAuthenticationStatus;
-                    }
-                } else {
-                    return null;
+                          @Override
+                          protected void onResult(final @NonNull Status status, final @Nullable String authCode) {
+                              runOnUiThread(new Runnable() {
+
+                                  @Override
+                                  public void run() {
+                                      if (mCurrentUser != null && mCurrentUser.getState() == User.State.BLOCKED) {
+                                          // If the user's identity gets blocked, we delete it
+                                          new AlertDialog.Builder(LoginActivity.this).setMessage(
+                                            "Identity has been blocked because of too many wrong PIN entries. You will need to create it again.")
+                                            .setPositiveButton("OK", null)
+                                            .setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                                                @Override
+                                                public void onDismiss(DialogInterface dialogInterface) {
+                                                    onDeleteClick();
+                                                }
+                                            }).show();
+                                          return;
+                                      }
+
+                                      if (status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK && authCode != null) {
+                                          // The authentication for the user is successful
+                                          validateLogin(authCode);
+                                      } else {
+                                          // Authentication failed
+                                          mMessageDialog.show(status);
+                                      }
+                                  }
+                              });
+                          }
+                      });
                 }
-            }
 
-            @Override
-            protected void onPostExecute(com.miracl.mpinsdk.model.Status status) {
-                if (status == null) {
-                    // We don't have a current user or an access code
-                    mMessageDialog.show("Can't login right now, try again");
-                    return;
-                }
-
-                if (mCurrentUser != null && mCurrentUser.getState() == User.State.BLOCKED) {
-                    // If the user's identity gets blocked, we delete it
-                    new AlertDialog.Builder(LoginActivity.this).setMessage(
-                      "Identity has been blocked because of too many wrong PIN entries. You will need to create it again.")
-                      .setPositiveButton("OK", null).setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                protected void onFail(final @NonNull Status status) {
+                    runOnUiThread(new Runnable() {
 
                         @Override
-                        public void onDismiss(DialogInterface dialogInterface) {
-                            onDeleteClick();
+                        public void run() {
+                            // Authentication failed
+                            mMessageDialog.show(status);
                         }
-                    }).show();
-                    return;
+                    });
                 }
-
-                if (status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK && authCode != null) {
-                    // The authentication for the user is successful
-                    validateLogin(authCode.toString());
-                } else {
-                    // Authentication failed
-                    mMessageDialog.show(status);
-                }
-            }
-        }.execute();
+            });
+        } else {
+            // We don't have a current user or an access code
+            mMessageDialog.show("Can't login right now, try again");
+        }
     }
 
     private void validateLogin(String authCode) {
         // We use the auth code from the sdk to validate the login with a demo service
         final String clientService = getString(R.string.access_code_service_base_url);
         if (!clientService.isEmpty() && mCurrentUser != null && authCode != null) {
-            new ValidateLoginTask(clientService, authCode, mCurrentUser.getId()) {
+            new ValidateLoginTask(clientService, authCode, mCurrentUser.getId(), new ValidateLoginTask.ValidationListener() {
 
                 @Override
-                protected void onPostExecute(Boolean isSuccessful) {
+                public void onValidate(boolean isSuccessful) {
                     if (isSuccessful) {
                         mMessageDialog.show(
                           "Successfully logged " + mCurrentUser.getId() + " to " + clientService + " with " + mCurrentUser
@@ -137,7 +141,7 @@ public class LoginActivity extends AppCompatActivity implements EnterPinDialog.E
                           .show("Failed to validate login to " + clientService + " with " + mCurrentUser.getBackend());
                     }
                 }
-            }.execute();
+            }).execute();
         } else {
             mMessageDialog.show("Failed to validate login");
         }
@@ -149,86 +153,95 @@ public class LoginActivity extends AppCompatActivity implements EnterPinDialog.E
     }
 
     private void configureSdkAndCurrentUser() {
-        new AsyncTask<Void, Void, Status>() {
+        SampleApplication.getMfaSdk().doInBackground(new MPinMfaAsync.Callback<MPinMFA>() {
 
             @Override
-            protected com.miracl.mpinsdk.model.Status doInBackground(Void... params) {
-                MPinMFA mPinMfa = SampleApplication.getMfaSdk();
-                // Set the cid and the backend with which the SDK will be configured
-                mPinMfa.setCid(getString(R.string.mpin_cid));
-                return mPinMfa.setBackend(getString(R.string.mpin_backend));
-            }
+            protected void onResult(@NonNull Status status, @Nullable MPinMFA sdk) {
+                if (sdk != null) {
+                    // Set the cid and the backend with which the SDK will be configured
+                    sdk.setCid(getString(R.string.mpin_cid));
+                    Status setBackendStatus = sdk.setBackend(getString(R.string.mpin_backend));
+                    if (setBackendStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
+                        // If the backend and CID are set successfully we can check for a registered user
+                        getCurrentUserAndInit();
+                    } else {
+                        runOnUiThread(new Runnable() {
 
-            @Override
-            protected void onPostExecute(com.miracl.mpinsdk.model.Status status) {
-                if (status != null && status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-                    // If the backend and CID are set successfully we can check for a registered user
-                    getCurrentUserAndInit();
-                } else {
-                    Toast.makeText(LoginActivity.this,
-                      "The MPin SDK did not initialize properly. Check you backend and CID configuration", Toast.LENGTH_LONG)
-                      .show();
+                            @Override
+                            public void run() {
+                                Toast.makeText(LoginActivity.this,
+                                  "The MPin SDK did not initialize properly. Check you backend and CID configuration",
+                                  Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
                 }
             }
-        }.execute();
+        });
     }
 
     private void getCurrentUserAndInit() {
-        new AsyncTask<Void, Void, Pair<Status, List<User>>>() {
+        SampleApplication.getMfaSdk().doInBackground(new MPinMfaAsync.Callback<MPinMFA>() {
 
             @Override
-            protected Pair<com.miracl.mpinsdk.model.Status, List<User>> doInBackground(Void... voids) {
-                MPinMFA sdk = SampleApplication.getMfaSdk();
-                // Get the list of stored users in order to check if there is
-                // an existing user that can be logged in with
-                List<User> users = new ArrayList<>();
-                List<User> registeredUsers = new ArrayList<>();
-                com.miracl.mpinsdk.model.Status listUsersStatus = sdk.listUsers(users);
-                for (User user : users) {
-                    if (user.getState() == User.State.REGISTERED) {
-                        registeredUsers.add(user);
-                    } else {
-                        // delete users that are not registered, because the sample does not handle such cases
-                        sdk.deleteUser(user);
+            protected void onResult(@NonNull final Status status, @Nullable MPinMFA sdk) {
+                if (sdk != null) {
+                    // Get the list of stored users in order to check if there is
+                    // an existing user that can be logged in with
+                    List<User> users = new ArrayList<>();
+                    List<User> registeredUsers = new ArrayList<>();
+                    final com.miracl.mpinsdk.model.Status listUsersStatus = sdk.listUsers(users);
+                    for (User user : users) {
+                        if (user.getState() == User.State.REGISTERED) {
+                            registeredUsers.add(user);
+                        } else {
+                            // delete users that are not registered, because the sample does not handle such cases
+                            sdk.deleteUser(user);
+                        }
                     }
-                }
 
-                return new Pair<>(listUsersStatus, registeredUsers);
-            }
+                    if (listUsersStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
+                        // Filter the registered users for the current backend
+                        String backendUrl = getString(R.string.mpin_backend);
+                        Uri currentBackend = Uri.parse(backendUrl);
 
-            @Override
-            protected void onPostExecute(Pair<com.miracl.mpinsdk.model.Status, List<User>> statusUsersPair) {
-                com.miracl.mpinsdk.model.Status status = statusUsersPair.first;
+                        if (currentBackend != null && currentBackend.getAuthority() != null) {
+                            final List<User> currentBackendRegisteredUsers = new ArrayList<>();
+                            for (User user : registeredUsers) {
+                                if (user.getBackend().equalsIgnoreCase(currentBackend.getAuthority())) {
+                                    currentBackendRegisteredUsers.add(user);
+                                }
+                            }
 
-                if (status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-                    // Filter the registered users for the current backend
-                    String backendUrl = getString(R.string.mpin_backend);
-                    Uri currentBackend = Uri.parse(backendUrl);
+                            if (currentBackendRegisteredUsers.isEmpty()) {
+                                // If there are no users, we need to register a new one
+                                startActivity(new Intent(LoginActivity.this, RegisterUserActivity.class));
+                                finish();
+                            } else {
+                                runOnUiThread(new Runnable() {
 
-                    if (currentBackend != null && currentBackend.getAuthority() != null) {
-                        List<User> currentBackendRegisteredUsers = new ArrayList<>();
-                        for (User user : statusUsersPair.second) {
-                            if (user.getBackend().equalsIgnoreCase(currentBackend.getAuthority())) {
-                                currentBackendRegisteredUsers.add(user);
+                                    @Override
+                                    public void run() {
+                                        // If there is a registered user show info
+                                        mCurrentUser = currentBackendRegisteredUsers.get(0);
+                                        initView();
+                                    }
+                                });
                             }
                         }
+                    } else {
+                        runOnUiThread(new Runnable() {
 
-                        if (currentBackendRegisteredUsers.isEmpty()) {
-                            // If there are no users, we need to register a new one
-                            startActivity(new Intent(LoginActivity.this, RegisterUserActivity.class));
-                            finish();
-                        } else {
-                            // If there is a registered user show info
-                            mCurrentUser = currentBackendRegisteredUsers.get(0);
-                            initView();
-                        }
+                            @Override
+                            public void run() {
+                                // Listing user for the current backend failed
+                                mMessageDialog.show(listUsersStatus);
+                            }
+                        });
                     }
-                } else {
-                    // Listing user for the current backend failed
-                    mMessageDialog.show(status);
                 }
             }
-        }.execute();
+        });
     }
 
     private void startLogin() {
@@ -239,35 +252,32 @@ public class LoginActivity extends AppCompatActivity implements EnterPinDialog.E
     private void onDeleteClick() {
         if (mCurrentUser != null) {
             mUserInfo.setVisibility(View.GONE);
-            new AsyncTask<Void, Void, Void>() {
+            SampleApplication.getMfaSdk().deleteUser(mCurrentUser, new MPinMfaAsync.Callback<Void>() {
 
                 @Override
-                protected Void doInBackground(Void... voids) {
+                protected void onResult(@NonNull Status status, @Nullable Void result) {
                     // After we delete the current user, start the registration flow again
-                    SampleApplication.getMfaSdk().deleteUser(mCurrentUser);
                     startActivity(new Intent(LoginActivity.this, RegisterUserActivity.class));
                     finish();
-                    return null;
                 }
-            }.execute();
+            });
         }
     }
 
     private void onLoginClick() {
         if (mCurrentUser != null) {
-            new AccessCodeObtainingTask(getString(R.string.access_code_service_base_url),
-              new AccessCodeObtainingTask.Callback() {
+            new AccessCodeObtainingTask(getString(R.string.access_code_service_base_url), new AccessCodeObtainingTask.Callback() {
 
-                  @Override
-                  public void onSuccess() {
-                      startLogin();
-                  }
+                @Override
+                public void onSuccess() {
+                    startLogin();
+                }
 
-                  @Override
-                  public void onFail(Status status) {
-                      mMessageDialog.show(status);
-                  }
-              }).execute();
+                @Override
+                public void onFail(Status status) {
+                    mMessageDialog.show(status);
+                }
+            }).execute();
         }
     }
 

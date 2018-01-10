@@ -1,4 +1,4 @@
-/***************************************************************
+/* **************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,7 +20,7 @@ package com.miracl.mpinsdk.inappsample;
 
 import android.app.Application;
 
-import com.miracl.mpinsdk.MPinMFA;
+import com.miracl.mpinsdk.MPinMfaAsync;
 
 public class SampleApplication extends Application {
 
@@ -29,18 +29,18 @@ public class SampleApplication extends Application {
         System.loadLibrary("AndroidMpinSDK");
     }
 
-    private static MPinMFA sMPinMfa;
-    private static String  sAccessCode;
+    private static MPinMfaAsync sMPinMfa;
+    private static String       sAccessCode;
 
     @Override
     public void onCreate() {
         super.onCreate();
         // Init the MPinMfa without additional configuration
-        sMPinMfa = new MPinMFA();
-        sMPinMfa.init(null, SampleApplication.this);
+        sMPinMfa = new MPinMfaAsync();
+        sMPinMfa.init(SampleApplication.this, null);
     }
 
-    public static MPinMFA getMfaSdk() {
+    public static MPinMfaAsync getMfaSdk() {
         return sMPinMfa;
     }
 
