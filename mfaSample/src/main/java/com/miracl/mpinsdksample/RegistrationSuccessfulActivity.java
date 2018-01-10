@@ -1,4 +1,4 @@
-/***************************************************************
+/* **************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,8 +18,8 @@
  ***************************************************************/
 package com.miracl.mpinsdksample;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -27,8 +27,10 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.miracl.mpinsdk.MPinMFA;
+import com.miracl.mpinsdk.MPinMfaAsync;
 import com.miracl.mpinsdk.model.Status;
 import com.miracl.mpinsdk.model.User;
+import com.miracl.mpinsdksample.util.ToastUtils;
 
 import java.util.ArrayList;
 
@@ -48,62 +50,76 @@ public class RegistrationSuccessfulActivity extends AppCompatActivity implements
 
     @Override
     public void onPinEntered(final String pin) {
-        new AsyncTask<Void, Void, Status>() {
+        SampleApplication.getMfaSdk().doInBackground(new MPinMfaAsync.Callback<MPinMFA>() {
 
             private User mCurrentUser;
 
             @Override
-            protected com.miracl.mpinsdk.model.Status doInBackground(Void... voids) {
-                MPinMFA mPinMfa = SampleApplication.getMfaSdk();
-                ArrayList<User> users = new ArrayList<>();
-                // Check if we have a registered user for the currently set backend
-                mPinMfa.listUsers(users);
-                if (!users.isEmpty() && SampleApplication.getCurrentAccessCode() != null) {
-                    mCurrentUser = users.get(0);
-                    // Start the authentication process with the stored access code and a registered user
-                    com.miracl.mpinsdk.model.Status startAuthenticationStatus = mPinMfa
-                      .startAuthentication(mCurrentUser, SampleApplication.getCurrentAccessCode());
-                    if (startAuthenticationStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-                        // Finish the authentication with the user's pin
-                        return mPinMfa.finishAuthentication(mCurrentUser, pin, SampleApplication.getCurrentAccessCode());
+            protected void onResult(@NonNull Status status, @Nullable MPinMFA sdk) {
+                if (sdk != null) {
+                    ArrayList<User> users = new ArrayList<>();
+                    // Check if we have a registered user for the currently set backend
+                    sdk.listUsers(users);
+                    if (!users.isEmpty() && SampleApplication.getCurrentAccessCode() != null) {
+                        mCurrentUser = users.get(0);
+                        // Start the authentication process with the stored access code and a registered user
+                        Status startAuthenticationStatus = sdk
+                          .startAuthentication(mCurrentUser, SampleApplication.getCurrentAccessCode());
+                        if (startAuthenticationStatus.getStatusCode() == Status.Code.OK) {
+                            // Finish the authentication with the user's pin
+                            Status finishAuthStatus = sdk
+                              .finishAuthentication(mCurrentUser, pin, SampleApplication.getCurrentAccessCode());
+
+                            if (finishAuthStatus.getStatusCode() == Status.Code.OK) {
+                                runOnUiThread(new Runnable() {
+
+                                    @Override
+                                    public void run() {
+                                        // The authentication for the user is successful
+                                        Toast.makeText(RegistrationSuccessfulActivity.this,
+                                          "Successfully logged " + mCurrentUser.getId() + " with " + mCurrentUser.getBackend(),
+                                          Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    }
+                                });
+                            } else {
+                                // Authentication failed
+                                showFailureToast(finishAuthStatus);
+                            }
+                        } else {
+                            // Authentication failed
+                            showFailureToast(startAuthenticationStatus);
+                        }
                     } else {
-                        return startAuthenticationStatus;
+                        runOnUiThread(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                Toast.makeText(RegistrationSuccessfulActivity.this, "Can't login right now, try again",
+                                  Toast.LENGTH_SHORT).show();
+                                mLoginButton.setEnabled(true);
+                            }
+                        });
                     }
-                } else {
-                    return null;
                 }
             }
-
-            @Override
-            protected void onPostExecute(com.miracl.mpinsdk.model.Status status) {
-                if (status == null) {
-                    // We don't have a user or an access code
-                    Toast.makeText(RegistrationSuccessfulActivity.this, "Can't login right now, try again", Toast.LENGTH_SHORT)
-                      .show();
-                    mLoginButton.setEnabled(true);
-                    return;
-                }
-
-                if (status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-                    // The authentication for the user is successful
-                    Toast.makeText(RegistrationSuccessfulActivity.this,
-                      "Successfully logged " + mCurrentUser.getId() + " with " + mCurrentUser.getBackend(), Toast.LENGTH_SHORT)
-                      .show();
-                    finish();
-                } else {
-                    // Authentication failed
-                    Toast.makeText(RegistrationSuccessfulActivity.this,
-                      "Status code: " + status.getStatusCode() + " message: " + status.getErrorMessage(), Toast.LENGTH_SHORT)
-                      .show();
-                    mLoginButton.setEnabled(true);
-                }
-            }
-        }.execute();
+        });
     }
 
     @Override
     public void onPinCanceled() {
         mLoginButton.setEnabled(true);
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.reg_success_login:
+                onLoginClick();
+                break;
+            default:
+                break;
+        }
     }
 
     private void initView() {
@@ -118,14 +134,14 @@ public class RegistrationSuccessfulActivity extends AppCompatActivity implements
         mEnterPinDialog.show();
     }
 
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.reg_success_login:
-                onLoginClick();
-                break;
-            default:
-                break;
-        }
+    private void showFailureToast(final Status status) {
+        ToastUtils.showStatus(this, status);
+        runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                mLoginButton.setEnabled(true);
+            }
+        });
     }
 }

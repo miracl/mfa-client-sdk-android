@@ -1,4 +1,4 @@
-/***************************************************************
+/* **************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -23,25 +23,26 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.miracl.mpinsdk.MPinMFA;
+import com.miracl.mpinsdk.MPinMfaAsync;
 import com.miracl.mpinsdk.model.ServiceDetails;
 import com.miracl.mpinsdk.model.SessionDetails;
 import com.miracl.mpinsdk.model.Status;
 import com.miracl.mpinsdk.model.User;
 import com.miracl.mpinsdksample.util.CameraPreview;
+import com.miracl.mpinsdksample.util.ToastUtils;
 
 import net.sourceforge.zbar.Config;
 import net.sourceforge.zbar.Image;
@@ -198,50 +199,62 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
             mCurrentAccessCode = qrUri.getFragment();
 
             final String baseUrl = qrUri.getScheme() + "://" + qrUri.getAuthority();
-
             // Obtain the service details and set the backend
-            new AsyncTask<Void, Void, Status>() {
+            SampleApplication.getMfaSdk().getServiceDetails(baseUrl, new MPinMfaAsync.Callback<ServiceDetails>() {
 
                 @Override
-                protected com.miracl.mpinsdk.model.Status doInBackground(Void... voids) {
-                    MPinMFA mPinMfa = SampleApplication.getMfaSdk();
-                    ServiceDetails serviceDetails = new ServiceDetails();
+                protected void onSuccess(@Nullable ServiceDetails result) {
+                    mCurrentServiceDetails = result;
+                    SampleApplication.getMfaSdk().setBackend(mCurrentServiceDetails, new MPinMfaAsync.Callback<Void>() {
 
-                    // MPinSDK methods are synchronous, be sure not to call them on the ui thread
-                    com.miracl.mpinsdk.model.Status serviceDetailsStatus = mPinMfa.getServiceDetails(baseUrl, serviceDetails);
-                    if (serviceDetailsStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-
-                        com.miracl.mpinsdk.model.Status backendStatus = mPinMfa.setBackend(serviceDetails.backendUrl);
-                        if (backendStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-                            mCurrentServiceDetails = serviceDetails;
+                        @Override
+                        protected void onSuccess(@Nullable Void result) {
                             // If the backend is set successfully, we can retrieve the session details using the access code
-                            SessionDetails details = new SessionDetails();
-                            return mPinMfa.getSessionDetails(mCurrentAccessCode, details);
-                        } else {
-                            return backendStatus;
+                            SampleApplication.getMfaSdk()
+                              .getSessionDetails(mCurrentAccessCode, new MPinMfaAsync.Callback<SessionDetails>() {
+
+                                  @Override
+                                  protected void onSuccess(@Nullable SessionDetails result) {
+                                      onBackendSet();
+
+                                      // Resume scanning for qr code
+                                      mIsBarCodeProcessing = false;
+                                      startCameraPreview();
+                                  }
+
+                                  @Override
+                                  protected void onFail(@NonNull Status status) {
+                                      // Retrieving session details failed
+                                      ToastUtils.showStatus(QrReaderActivity.this, status);
+
+                                      // Resume scanning for qr code
+                                      mIsBarCodeProcessing = false;
+                                      startCameraPreview();
+                                  }
+                              });
                         }
-                    } else {
-                        return serviceDetailsStatus;
-                    }
+
+                        @Override
+                        protected void onFail(@NonNull Status status) {
+                            // The setting of backend failed
+                            ToastUtils.showStatus(QrReaderActivity.this, status);
+
+                            // Resume scanning for qr code
+                            mIsBarCodeProcessing = false;
+                            startCameraPreview();
+                        }
+                    });
                 }
 
                 @Override
-                protected void onPostExecute(com.miracl.mpinsdk.model.Status status) {
-                    if (status != null) {
-                        if (status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-                            onBackendSet();
-                        } else {
-                            // The setting of backend or retrieving the session details failed
-                            Toast.makeText(QrReaderActivity.this,
-                              "Status code: " + status.getStatusCode() + " message: " + status.getErrorMessage(),
-                              Toast.LENGTH_SHORT).show();
-                        }
-                        // Resume scanning for qr code
-                        mIsBarCodeProcessing = false;
-                        startCameraPreview();
-                    }
+                protected void onFail(final @NonNull Status status) {
+                    ToastUtils.showStatus(QrReaderActivity.this, status);
+
+                    // Resume scanning for qr code
+                    mIsBarCodeProcessing = false;
+                    startCameraPreview();
                 }
-            }.execute();
+            });
         } else {
             // The url does not have the expected format
             Toast.makeText(this, "Invalid qr url", Toast.LENGTH_SHORT).show();
@@ -253,110 +266,103 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
 
     private void onBackendSet() {
         SampleApplication.setCurrentAccessCode(mCurrentAccessCode);
-        new AsyncTask<Void, Void, Pair<Status, List<User>>>() {
+        SampleApplication.getMfaSdk().doInBackground(new MPinMfaAsync.Callback<MPinMFA>() {
 
             @Override
-            protected Pair<com.miracl.mpinsdk.model.Status, List<User>> doInBackground(Void... voids) {
-                MPinMFA sdk = SampleApplication.getMfaSdk();
-                // Get the list of stored users in order to check if there is
-                // an existing user that can be logged in
-                List<User> users = new ArrayList<>();
-                List<User> registeredUsers = new ArrayList<>();
-                com.miracl.mpinsdk.model.Status listUsersStatus = sdk.listUsers(users);
-                for (User user : users) {
-                    if (user.getState() == User.State.REGISTERED) {
-                        registeredUsers.add(user);
-                    } else {
-                        // delete users that are not registered, because the sample does not handle such cases
-                        sdk.deleteUser(user);
+            protected void onResult(@NonNull Status status, @Nullable MPinMFA sdk) {
+                if (sdk != null) {
+                    // Get the list of stored users in order to check if there is
+                    // an existing user that can be logged in
+                    List<User> users = new ArrayList<>();
+                    List<User> registeredUsers = new ArrayList<>();
+                    com.miracl.mpinsdk.model.Status listUsersStatus = sdk.listUsers(users);
+                    for (User user : users) {
+                        if (user.getState() == User.State.REGISTERED) {
+                            registeredUsers.add(user);
+                        } else {
+                            // delete users that are not registered, because the sample does not handle such cases
+                            sdk.deleteUser(user);
+                        }
                     }
-                }
 
-                return new Pair<>(listUsersStatus, registeredUsers);
-            }
+                    if (listUsersStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
+                        // Filter the registered users for the current backend
+                        Uri currentBackend = Uri.parse(mCurrentServiceDetails.backendUrl);
+                        if (currentBackend != null && currentBackend.getAuthority() != null) {
+                            final List<User> currentBackendRegisteredUsers = new ArrayList<>();
+                            for (User user : registeredUsers) {
+                                if (user.getBackend().equalsIgnoreCase(currentBackend.getAuthority())) {
+                                    currentBackendRegisteredUsers.add(user);
+                                }
+                            }
 
-            @Override
-            protected void onPostExecute(Pair<com.miracl.mpinsdk.model.Status, List<User>> statusUsersPair) {
-                com.miracl.mpinsdk.model.Status status = statusUsersPair.first;
+                            if (currentBackendRegisteredUsers.isEmpty()) {
+                                // If there are no users, we need to register a new one
+                                startActivity(new Intent(QrReaderActivity.this, RegisterUserActivity.class));
+                            } else {
+                                runOnUiThread(new Runnable() {
 
-                if (status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-                    // Filter the registered users for the current backend
-                    Uri currentBackend = Uri.parse(mCurrentServiceDetails.backendUrl);
-                    if (currentBackend != null && currentBackend.getAuthority() != null) {
-                        List<User> currentBackendRegisteredUsers = new ArrayList<>();
-                        for (User user : statusUsersPair.second) {
-                            if (user.getBackend().equalsIgnoreCase(currentBackend.getAuthority())) {
-                                currentBackendRegisteredUsers.add(user);
+                                    @Override
+                                    public void run() {
+                                        // If there is a registered user start the authentication process
+                                        mCurrentUser = currentBackendRegisteredUsers.get(0);
+                                        mEnterPinDialog.setTitle(mCurrentUser.getId());
+                                        mEnterPinDialog.show();
+                                    }
+                                });
                             }
                         }
-
-                        if (currentBackendRegisteredUsers.isEmpty()) {
-                            // If there are no users, we need to register a new one
-                            startActivity(new Intent(QrReaderActivity.this, RegisterUserActivity.class));
-                        } else {
-                            // If there is a registered user start the authentication process
-                            mCurrentUser = currentBackendRegisteredUsers.get(0);
-                            mEnterPinDialog.setTitle(mCurrentUser.getId());
-                            mEnterPinDialog.show();
-                        }
+                    } else {
+                        ToastUtils.showStatus(QrReaderActivity.this, status);
                     }
-                } else {
-                    // Listing user for the current backend failed
-                    Toast.makeText(QrReaderActivity.this,
-                      "Status code: " + status.getStatusCode() + " message: " + status.getErrorMessage(), Toast.LENGTH_SHORT)
-                      .show();
                 }
             }
-        }.execute();
+        });
     }
 
     @Override
     public void onPinEntered(final String pin) {
-        new AsyncTask<Void, Void, Status>() {
+        // Start the authentication process with the scanned access code and a registered user
+        SampleApplication.getMfaSdk().startAuthentication(mCurrentUser, mCurrentAccessCode, new MPinMfaAsync.Callback<Void>() {
 
             @Override
-            protected com.miracl.mpinsdk.model.Status doInBackground(Void... voids) {
-                MPinMFA mPinMfa = SampleApplication.getMfaSdk();
-                if (mCurrentUser != null && mCurrentAccessCode != null) {
-                    // Start the authentication process with the scanned access code and a registered user
-                    com.miracl.mpinsdk.model.Status startAuthenticationStatus = mPinMfa
-                      .startAuthentication(mCurrentUser, mCurrentAccessCode);
-                    if (startAuthenticationStatus.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-                        // Finish the authentication with the user's pin
-                        return mPinMfa.finishAuthentication(mCurrentUser, pin, mCurrentAccessCode);
-                    } else {
-                        return startAuthenticationStatus;
-                    }
-                } else {
-                    return null;
-                }
+            protected void onSuccess(@Nullable Void result) {
+                SampleApplication.getMfaSdk()
+                  .finishAuthentication(mCurrentUser, pin, mCurrentAccessCode, new MPinMfaAsync.Callback<Void>() {
+
+                      @Override
+                      protected void onResult(final @NonNull Status status, @Nullable Void result) {
+                          runOnUiThread(new Runnable() {
+
+                              @Override
+                              public void run() {
+
+                                  if (status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
+                                      // The authentication for the user is successful
+                                      Toast.makeText(QrReaderActivity.this,
+                                        "Successfully logged " + mCurrentUser.getId() + " with " + mCurrentUser.getBackend(),
+                                        Toast.LENGTH_SHORT).show();
+                                  } else {
+                                      // Authentication failed
+                                      Toast.makeText(QrReaderActivity.this,
+                                        "Status code: " + status.getStatusCode() + " message: " + status.getErrorMessage(),
+                                        Toast.LENGTH_SHORT).show();
+                                  }
+
+                                  // Resume scanning for qr code
+                                  mIsBarCodeProcessing = false;
+                                  startCameraPreview();
+                              }
+                          });
+                      }
+                  });
             }
 
             @Override
-            protected void onPostExecute(com.miracl.mpinsdk.model.Status status) {
-                if (status == null) {
-                    // We don't have a current user or an access code
-                    Toast.makeText(QrReaderActivity.this, "Can't login right now, try again", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if (status.getStatusCode() == com.miracl.mpinsdk.model.Status.Code.OK) {
-                    // The authentication for the user is successful
-                    Toast.makeText(QrReaderActivity.this,
-                      "Successfully logged " + mCurrentUser.getId() + " with " + mCurrentUser.getBackend(), Toast.LENGTH_SHORT)
-                      .show();
-                } else {
-                    // Authentication failed
-                    Toast.makeText(QrReaderActivity.this,
-                      "Status code: " + status.getStatusCode() + " message: " + status.getErrorMessage(), Toast.LENGTH_SHORT)
-                      .show();
-                }
-
-                // Resume scanning for qr code
-                mIsBarCodeProcessing = false;
-                startCameraPreview();
+            protected void onFail(@NonNull Status status) {
+                ToastUtils.showStatus(QrReaderActivity.this, status);
             }
-        }.execute();
+        });
     }
 
     @Override

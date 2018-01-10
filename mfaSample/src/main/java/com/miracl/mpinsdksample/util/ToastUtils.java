@@ -16,34 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
  ***************************************************************/
-package com.miracl.mpinsdksample;
+package com.miracl.mpinsdksample.util;
 
-import android.app.Application;
+import android.app.Activity;
+import android.support.annotation.NonNull;
+import android.widget.Toast;
 
-import com.miracl.mpinsdk.MPinMfaAsync;
+import com.miracl.mpinsdk.model.Status;
 
-public class SampleApplication extends Application {
+public class ToastUtils {
 
+    public static void showStatus(final @NonNull Activity activity, final @NonNull Status status) {
+        activity.runOnUiThread(new Runnable() {
 
-    private static MPinMfaAsync sMPinMfa;
-    private static String       sAccessCode;
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        sMPinMfa = new MPinMfaAsync();
-        sMPinMfa.init(this, getString(R.string.mpin_cid), null, null);
-    }
-
-    public static MPinMfaAsync getMfaSdk() {
-        return sMPinMfa;
-    }
-
-    public static String getCurrentAccessCode() {
-        return sAccessCode;
-    }
-
-    public static void setCurrentAccessCode(String accessCode) {
-        sAccessCode = accessCode;
+            @Override
+            public void run() {
+                Toast.makeText(activity, "Status code: " + status.getStatusCode() + " message: " + status.getErrorMessage(),
+                  Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
