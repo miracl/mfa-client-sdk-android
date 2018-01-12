@@ -420,7 +420,7 @@ public class MPinMfaAsync {
      * @param callback
      *   The callback for the operation. Can be <code>null</code> and the operation will still be executed.
      * @see #confirmRegistration(User, Callback)
-     * @see #finishRegistration(User, String, Callback)
+     * @see #finishRegistration(User, String[], Callback)
      */
     public void startRegistration(@NonNull final String accessCode, final @NonNull User user,
                                   @Nullable final Callback<Void> callback) {
@@ -452,7 +452,7 @@ public class MPinMfaAsync {
      * @param callback
      *   Callback with the newly created user
      * @see #confirmRegistration(User, Callback)
-     * @see #finishRegistration(User, String, Callback)
+     * @see #finishRegistration(User, String[], Callback)
      */
     public void startRegistration(@NonNull final String accessCode, @NonNull final String userId,
                                   @Nullable final String deviceName, @NonNull final Callback<User> callback) {
@@ -492,7 +492,7 @@ public class MPinMfaAsync {
      * @see #startRegistration(String, String, String, Callback)
      * @see #startRegistration(String, User, Callback)
      * @see #confirmRegistration(User, Callback)
-     * @see #finishRegistration(User, String, Callback)
+     * @see #finishRegistration(User, String[], Callback)
      */
     public void restartRegistration(@NonNull final User user, final @Nullable Callback<Void> callback) {
         mWorkerHandler.post(new Runnable() {
@@ -523,7 +523,7 @@ public class MPinMfaAsync {
      * @see #startRegistration(String, String, String, Callback)
      * @see #startRegistration(String, User, Callback)
      * @see #restartRegistration(User, Callback)
-     * @see #finishRegistration(User, String, Callback)
+     * @see #finishRegistration(User, String[], Callback)
      */
     public void confirmRegistration(@NonNull final User user, final @Nullable Callback<Void> callback) {
         mWorkerHandler.post(new Runnable() {
@@ -546,13 +546,13 @@ public class MPinMfaAsync {
     }
 
     /**
-     * Finish the registration process for a user with confirmed registration. The provided pin will be used to
+     * Finish the registration process for a user with confirmed registration. The provided array of strings will be used to
      * authenticate the user and cannot be changed later.
      *
      * @param user
      *   The user with confirmed registration
-     * @param pin
-     *   The pin for the user. It will be associated with the user and cannot be changed.
+     * @param factors
+     *   An array of strings that form the user's authentication. It will be associated with the user and cannot be changed.
      * @param callback
      *   The callback for the operation. Can be <code>null</code> and the operation will still be executed.
      * @see #startRegistration(String, String, String, Callback)
@@ -560,12 +560,13 @@ public class MPinMfaAsync {
      * @see #restartRegistration(User, Callback)
      * @see #confirmRegistration(User, Callback)
      */
-    public void finishRegistration(@NonNull final User user, @NonNull final String pin, @Nullable final Callback<Void> callback) {
+    public void finishRegistration(@NonNull final User user, @NonNull final String[] factors, @Nullable final Callback<Void>
+      callback) {
         mWorkerHandler.post(new Runnable() {
 
             @Override
             public void run() {
-                Status status = mMfaSdk.finishRegistration(user, pin);
+                Status status = mMfaSdk.finishRegistration(user, factors);
                 if (status.getStatusCode() == Status.Code.OK) {
                     mMfaInfoCache.removeExpiration(user);
                 }
@@ -579,7 +580,7 @@ public class MPinMfaAsync {
     /**
      * Start a new registration with an existing user. The existing user will be deleted and a registration for a new one with
      * the same id will be started and the backend for the existing user will be set as current one for the SDK. Can be used to
-     * to make a new registration for a previously blocked user or to change a user's pin.
+     * to make a new registration for a previously blocked user or to change a user's factors.
      *
      * @param accessCode
      *   The access code for the registration
@@ -588,7 +589,7 @@ public class MPinMfaAsync {
      * @param callback
      *   Callback with the newly created user or the old one if changing the backend failed
      * @see #confirmRegistration(User, Callback)
-     * @see #finishRegistration(User, String, Callback)
+     * @see #finishRegistration(User, String[], Callback)
      */
     public void startNewRegistration(@NonNull final String accessCode, @NonNull final User user,
                                      @Nullable final String deviceName, @Nullable final Callback<User> callback) {
@@ -617,6 +618,63 @@ public class MPinMfaAsync {
                     if (callback != null) {
                         callback.onResult(setBackendStatus, user);
                     }
+                }
+            }
+        });
+    }
+
+
+    /**
+     * Start the registration process for DVS capabilities of a {@link User user}. The user should already be in
+     * {@link User.State#REGISTERED registered state} and valid dvs registering token should be provided. Check if a user is
+     * already registered for DVS with {@link User#canSign()}.
+     *
+     * @param user
+     *   The User object in registered state
+     * @param token
+     *   The DVS registration token
+     * @param callback
+     *   The callback for the operation. Can be <code>null</code> and the operation will still be executed.
+     * @see #finishRegistrationDvs(User, String[], Callback)
+     * @see User#canSign()
+     */
+    public void startRegistrationDvs(@NonNull final User user, @NonNull final String token,
+                                     @Nullable final Callback<Void> callback) {
+        mWorkerHandler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                Status status = mMfaSdk.startRegistrationDvs(user, token);
+                if (callback != null) {
+                    callback.onResult(status, null);
+                }
+            }
+        });
+    }
+
+    /**
+     * Finish the registration process for DVS capabilities of a {@link User user}. The user should already be in
+     * {@link User.State#REGISTERED registered state} and {@link #startRegistrationDvs(User, String, Callback)} should be
+     * previously called for it. Check if a user is already registered for DVS with {@link User#canSign()}.
+     *
+     * @param user
+     *   The User object in registered state
+     * @param multiFactor
+     *   The array of string factors for the User's signing
+     * @param callback
+     *   The callback for the operation. Can be <code>null</code> and the operation will still be executed.
+     * @see #startRegistrationDvs(User, String, Callback)
+     * @see User#canSign()
+     */
+    public void finishRegistrationDvs(@NonNull final User user, @NonNull final String[] multiFactor,
+                                      @Nullable final Callback<Void> callback) {
+        mWorkerHandler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                Status status = mMfaSdk.finishRegistrationDvs(user, multiFactor);
+                if (callback != null) {
+                    callback.onResult(status, null);
                 }
             }
         });
@@ -681,7 +739,7 @@ public class MPinMfaAsync {
      *   A valid access code
      * @param callback
      *   Callback for the operation
-     * @see #finishAuthentication(User, String, String, Callback)
+     * @see #finishAuthentication(User, String[], String, Callback)
      */
     public void startAuthentication(@NonNull final User user, @NonNull final String accessCode,
                                     @NonNull final Callback<Void> callback) {
@@ -703,21 +761,21 @@ public class MPinMfaAsync {
      *
      * @param user
      *   The user for which an authentication is started
-     * @param pin
-     *   The user's pin
+     * @param factors
+     *   An array of strings that form the user's authentication
      * @param accessCode
      *   A valid access code, the same one used for starting the authentication
      * @param callback
      *   Callback for the operation
      * @see #startAuthentication(User, String, Callback)
      */
-    public void finishAuthentication(@NonNull final User user, @NonNull final String pin, @NonNull final String accessCode,
+    public void finishAuthentication(@NonNull final User user, @NonNull final String[] factors, @NonNull final String accessCode,
                                      @NonNull final Callback<Void> callback) {
         mWorkerHandler.post(new Runnable() {
 
             @Override
             public void run() {
-                Status status = mMfaSdk.finishAuthentication(user, pin, accessCode);
+                Status status = mMfaSdk.finishAuthentication(user, factors, accessCode);
                 if (status.getStatusCode() == Status.Code.OK) {
                     mMfaInfoCache.putLastLoggedInUser(user);
                 }
@@ -727,28 +785,28 @@ public class MPinMfaAsync {
     }
 
     /**
-     * Finish the authentication process for a user that has started authentication and obtain authentaction code for it.
+     * Finish the authentication process for a user that has started authentication and obtain authentication code for it.
      * Should be called after {@link #startAuthentication(User, String, Callback)} with the same access code. If the same
      * access code is not valid, the authentication process should be started again with a new valid access code.
      *
      * @param user
      *   The user for which an authentication is started
-     * @param pin
-     *   The user's pin
+     * @param factors
+     *   An array of strings that form the user's authentication
      * @param accessCode
      *   A valid access code, the same one used for starting the authentication
      * @param callback
      *   Callback for the operation with the authentication code
      * @see #startAuthentication(User, String, Callback)
      */
-    public void finishAuthenticationAuthCode(@NonNull final User user, @NonNull final String pin,
+    public void finishAuthenticationAuthCode(@NonNull final User user, @NonNull final String[] factors,
                                              @NonNull final String accessCode, @NonNull final Callback<String> callback) {
         mWorkerHandler.post(new Runnable() {
 
             @Override
             public void run() {
                 StringBuilder authCode = new StringBuilder();
-                Status status = mMfaSdk.finishAuthentication(user, pin, accessCode, authCode);
+                Status status = mMfaSdk.finishAuthentication(user, factors, accessCode, authCode);
                 if (status.getStatusCode() == Status.Code.OK) {
                     mMfaInfoCache.putLastLoggedInUser(user);
                 }
@@ -764,7 +822,7 @@ public class MPinMfaAsync {
      *   The user which will be authenticated
      * @param callback
      *   Callback for the operation
-     * @see #finishAuthenticationOtp(User, String, Callback)
+     * @see #finishAuthenticationOtp(User, String[], Callback)
      */
     public void startAuthenticationOtp(@NonNull final User user, @NonNull final Callback<Void> callback) {
         mWorkerHandler.post(new Runnable() {
@@ -784,21 +842,21 @@ public class MPinMfaAsync {
      *
      * @param user
      *   The user for which a OTP authentication is started
-     * @param pin
-     *   The user's pin
+     * @param factors
+     *   An array of strings that form the user's authentication
      * @param callback
      *   Callback with the generated OTP
      * @see #startAuthenticationOtp(User, Callback)
      * @see OTP
      */
-    public void finishAuthenticationOtp(@NonNull final User user, @NonNull final String pin,
+    public void finishAuthenticationOtp(@NonNull final User user, @NonNull final String[] factors,
                                         @NonNull final Callback<OTP> callback) {
         mWorkerHandler.post(new Runnable() {
 
             @Override
             public void run() {
                 OTP otp = new OTP();
-                Status status = mMfaSdk.finishAuthenticationOtp(user, pin, otp);
+                Status status = mMfaSdk.finishAuthenticationOtp(user, factors, otp);
                 if (status.getStatusCode() == Status.Code.OK) {
                     mMfaInfoCache.putLastOtpUser(user);
                 }

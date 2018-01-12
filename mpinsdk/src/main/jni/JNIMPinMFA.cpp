@@ -250,6 +250,18 @@ static jobject nFinishRegistrationMultiFactor(JNIEnv* env, jobject jobj, jlong j
     return MakeJavaStatus(env, sdk->FinishRegistration(JavaToMPinUser(env, juser), JavaStringArrayToMultiFactor(env, jmultiFactor)));
 }
 
+static jobject nStartRegistrationDVS(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring jtoken)
+{
+    MfaSDK* sdk = (MfaSDK*) jptr;
+    return MakeJavaStatus(env, sdk->StartRegistrationDVS(JavaToMPinUser(env, juser), JavaToStdString(env, jtoken)));
+}
+
+static jobject nFinishRegistrationDVS(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jobjectArray jmultiFactor)
+{
+    MfaSDK* sdk = (MfaSDK*) jptr;
+    return MakeJavaStatus(env, sdk->FinishRegistrationDVS(JavaToMPinUser(env, juser), JavaStringArrayToMultiFactor(env, jmultiFactor)));
+}
+
 static jobject nGetAccessCode(JNIEnv* env, jobject jobj, jlong jptr, jstring jauthUrl, jobject jaccessCode)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
@@ -446,6 +458,8 @@ static JNINativeMethod g_methodsMfaSDK[] =
 	NATIVE_METHOD(nConfirmRegistration, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),
 	NATIVE_METHOD(nFinishRegistration, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishRegistrationMultiFactor, "(JLcom/miracl/mpinsdk/model/User;[Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nStartRegistrationDVS, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nFinishRegistrationDVS, "(JLcom/miracl/mpinsdk/model/User;[Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
 	NATIVE_METHOD(nGetAccessCode, "(JLjava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nStartAuthenticationOTP, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),
 	NATIVE_METHOD(nStartAuthentication, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),

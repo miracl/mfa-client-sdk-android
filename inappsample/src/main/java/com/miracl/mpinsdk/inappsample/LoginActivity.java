@@ -69,8 +69,8 @@ public class LoginActivity extends AppCompatActivity implements EnterPinDialog.E
 
                 @Override
                 protected void onSuccess(@Nullable Void result) {
-                    SampleApplication.getMfaSdk()
-                      .finishAuthenticationAuthCode(mCurrentUser, pin, accessCode, new MPinMfaAsync.Callback<String>() {
+                    SampleApplication.getMfaSdk().finishAuthenticationAuthCode(mCurrentUser, new String[]{pin}, accessCode,
+                      new MPinMfaAsync.Callback<String>() {
 
                           @Override
                           protected void onResult(final @NonNull Status status, final @Nullable String authCode) {

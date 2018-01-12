@@ -173,6 +173,14 @@ public class MPinMFA implements Closeable {
         return nFinishRegistrationMultiFactor(mPtr, user, multiFactor);
     }
 
+    public Status startRegistrationDvs(User user, String token) {
+        return nStartRegistrationDVS(mPtr, user, token);
+    }
+
+    public Status finishRegistrationDvs(User user, String[] multiFactor) {
+        return nFinishRegistrationDVS(mPtr, user, multiFactor);
+    }
+
 
     public Status getAccessCode(String authUrl, StringBuilder accessCode) {
         return nGetAccessCode(mPtr, authUrl, accessCode);
@@ -285,6 +293,10 @@ public class MPinMFA implements Closeable {
 
     private native Status nFinishRegistrationMultiFactor(long ptr, User user, String[] multiFactor);
 
+    private native Status nStartRegistrationDVS(long ptr, User user, String token);
+
+    private native Status nFinishRegistrationDVS(long ptr, User user, String[] multiFactor);
+
 
     private native Status nGetAccessCode(long ptr, String authUrl, StringBuilder accessCode);
 
@@ -309,8 +321,7 @@ public class MPinMFA implements Closeable {
 
     private native boolean nVerifyDocumentHash(long ptr, String document, byte[] hash);
 
-    private native Status nSign(long ptr, User user, byte[] documentHash, String secret, int epochTime,
-                                Signature signature);
+    private native Status nSign(long ptr, User user, byte[] documentHash, String secret, int epochTime, Signature signature);
 
     private native Status nSignMultiFactor(long ptr, User user, byte[] documentHash, String[] multiFactor, int epochTime,
                                            Signature signature);

@@ -328,7 +328,7 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
             @Override
             protected void onSuccess(@Nullable Void result) {
                 SampleApplication.getMfaSdk()
-                  .finishAuthentication(mCurrentUser, pin, mCurrentAccessCode, new MPinMfaAsync.Callback<Void>() {
+                  .finishAuthentication(mCurrentUser, new String[]{pin}, mCurrentAccessCode, new MPinMfaAsync.Callback<Void>() {
 
                       @Override
                       protected void onResult(final @NonNull Status status, @Nullable Void result) {

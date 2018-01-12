@@ -80,7 +80,7 @@ public class RegisterUserActivity extends AppCompatActivity implements View.OnCl
         }
 
         // Once we have the user's pin we can finish the registration process
-        SampleApplication.getMfaSdk().finishRegistration(mCurrentUser, pin, new MPinMfaAsync.Callback<Void>() {
+        SampleApplication.getMfaSdk().finishRegistration(mCurrentUser, new String[]{pin}, new MPinMfaAsync.Callback<Void>() {
 
             @Override
             protected void onSuccess(@Nullable Void result) {
