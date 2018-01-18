@@ -36,8 +36,8 @@ public class SampleApplication extends Application {
     public void onCreate() {
         super.onCreate();
         // Init the MPinMfa without additional configuration
-        sMPinMfa = new MPinMfaAsync();
-        sMPinMfa.init(SampleApplication.this, null);
+        sMPinMfa = new MPinMfaAsync(this);
+        sMPinMfa.init(this, null);
     }
 
     public static MPinMfaAsync getMfaSdk() {

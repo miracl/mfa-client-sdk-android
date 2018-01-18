@@ -31,7 +31,7 @@ public class SampleApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        sMPinMfa = new MPinMfaAsync();
+        sMPinMfa = new MPinMfaAsync(this);
         sMPinMfa.init(this, getString(R.string.mpin_cid), null, null);
     }
 

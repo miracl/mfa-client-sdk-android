@@ -118,8 +118,10 @@ public class MPinMfaAsync {
      * @see #init(Context, Callback)
      * @see #init(Context, String, String[], Callback)
      */
-    public MPinMfaAsync() {
+    public MPinMfaAsync(@NonNull Context context) {
         mMfaSdk = new MPinMFA();
+        mMfaInfoCache = new MfaInfoCache(
+          context.getApplicationContext().getSharedPreferences(DEFAULT_SHARED_PREFS, Context.MODE_PRIVATE));
         initWorkerThread();
     }
 
@@ -149,8 +151,6 @@ public class MPinMfaAsync {
      */
     public void init(@NonNull Context context, @Nullable String cid, @Nullable String[] trustedDomains,
                      @Nullable final Callback<Void> callback) {
-        mMfaInfoCache = new MfaInfoCache(
-          context.getApplicationContext().getSharedPreferences(DEFAULT_SHARED_PREFS, Context.MODE_PRIVATE));
 
         Status status = mMfaSdk.init(null, context);
         if (status.getStatusCode() == Status.Code.OK) {
@@ -560,8 +560,8 @@ public class MPinMfaAsync {
      * @see #restartRegistration(User, Callback)
      * @see #confirmRegistration(User, Callback)
      */
-    public void finishRegistration(@NonNull final User user, @NonNull final String[] factors, @Nullable final Callback<Void>
-      callback) {
+    public void finishRegistration(@NonNull final User user, @NonNull final String[] factors,
+                                   @Nullable final Callback<Void> callback) {
         mWorkerHandler.post(new Runnable() {
 
             @Override

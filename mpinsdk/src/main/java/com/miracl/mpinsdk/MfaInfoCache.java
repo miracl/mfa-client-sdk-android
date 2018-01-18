@@ -35,7 +35,7 @@ import com.miracl.mpinsdk.model.User;
 import java.util.HashMap;
 import java.util.Locale;
 
-class MfaInfoCache {
+public class MfaInfoCache {
 
     private static final String KEY_SERVICE_INFO       = "service-info";
     private static final String KEY_CUSTOMER_INFO      = "customer-info";
@@ -141,8 +141,7 @@ class MfaInfoCache {
      * @return The stored info or <code>null</code> if there is no information for this id
      * @see CustomerInfo
      */
-    public
-    @Nullable
+    public @Nullable
     CustomerInfo getCustomerInfo(String id) {
         if (mCustomerInfo.containsKey(id)) {
             return mCustomerInfo.get(id);
@@ -159,8 +158,7 @@ class MfaInfoCache {
      * @return The details for the service or <code>null</code> if there are no stored details for this backend
      * @see ServiceDetails
      */
-    public
-    @Nullable
+    public @Nullable
     ServiceDetails getServiceDetails(@NonNull String backend) {
         if (mServiceInfo.containsKey(backend)) {
             return mServiceInfo.get(backend);
@@ -180,8 +178,7 @@ class MfaInfoCache {
      * @return The user's id. Could be <code>null</code> if there hasn't been a successful authentication to that
      * backend/customerId pair.
      */
-    public
-    @Nullable
+    public @Nullable
     String getLastLoggedInUserId(@NonNull String backend, @NonNull String customerId) {
         String key = getLastLoggedKey(getBackend(backend), customerId);
         if (mLastLoggedUsers.containsKey(key)) {
@@ -197,8 +194,7 @@ class MfaInfoCache {
      * @return Pair.first is the id of the user,
      * Pair.second is the customer id. Could be <code>null</code> if there hasn't been a successful OTP authentication.
      */
-    public
-    @Nullable
+    public @Nullable
     Pair<String, String> getLastOtpUserAndCustomerId() {
         return mLastOtpUser;
     }
@@ -211,8 +207,7 @@ class MfaInfoCache {
      * @return The RegOtt expiration if available
      * @see RegOttExpiration
      */
-    public
-    @Nullable
+    public @Nullable
     RegOttExpiration getRegOttExpiration(User user) {
         String key = getExpirationKey(user);
         if (mExpiration.containsKey(key)) {
