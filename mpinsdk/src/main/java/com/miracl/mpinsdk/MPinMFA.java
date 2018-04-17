@@ -222,12 +222,12 @@ public class MPinMFA implements Closeable {
         return nVerifyDocumentHash(mPtr, document, hash);
     }
 
-    public Status sign(User user, byte[] documentHash, String secret, int epochTime, Signature signature) {
-        return nSign(mPtr, user, documentHash, secret, epochTime, signature);
+    public Status sign(User user, byte[] documentHash, String secret, int epochTime, String authzToken, Signature signature) {
+        return nSign(mPtr, user, documentHash, secret, epochTime, authzToken, signature);
     }
 
-    public Status sign(User user, byte[] documentHash, String[] multiFactor, int epochTime, Signature signature) {
-        return nSignMultiFactor(mPtr, user, documentHash, multiFactor, epochTime, signature);
+    public Status sign(User user, byte[] documentHash, String[] multiFactor, int epochTime, String authzToken, Signature signature) {
+        return nSignMultiFactor(mPtr, user, documentHash, multiFactor, epochTime, authzToken, signature);
     }
 
     public Status listUsers(List<User> users) {
@@ -321,9 +321,9 @@ public class MPinMFA implements Closeable {
 
     private native boolean nVerifyDocumentHash(long ptr, String document, byte[] hash);
 
-    private native Status nSign(long ptr, User user, byte[] documentHash, String secret, int epochTime, Signature signature);
+    private native Status nSign(long ptr, User user, byte[] documentHash, String secret, int epochTime, String authzToken, Signature signature);
 
-    private native Status nSignMultiFactor(long ptr, User user, byte[] documentHash, String[] multiFactor, int epochTime,
+    private native Status nSignMultiFactor(long ptr, User user, byte[] documentHash, String[] multiFactor, int epochTime, String authzToken,
                                            Signature signature);
 
 
