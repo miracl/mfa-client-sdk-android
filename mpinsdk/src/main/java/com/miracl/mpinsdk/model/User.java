@@ -72,7 +72,14 @@ public class User implements Closeable {
         return nCanSign(mPtr);
     }
 
-
+    /**
+     * Gets the required length for the user PIN, as configured in the MFA platform
+     * @return
+     * The required length for the user PIN
+     */
+    public int getPinLength() {
+        return nGetPinLength(mPtr);
+    }
     @Override
     public void close() {
         synchronized (this) {
@@ -112,4 +119,6 @@ public class User implements Closeable {
     private native String nGetAppId(long ptr);
 
     private native boolean nCanSign(long ptr);
+
+    private native int nGetPinLength(long ptr);
 }

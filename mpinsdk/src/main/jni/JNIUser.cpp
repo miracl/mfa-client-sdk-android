@@ -67,6 +67,11 @@ static jboolean nCanSign(JNIEnv *env, jobject jobj, jlong jptr) {
     return (jboolean) userPtr->get()->CanSign();
 }
 
+static jint nGetPinLength(JNIEnv *env, jobject jobj, jlong jptr) {
+    const MPinSDKBase::UserPtr *userPtr = (const MPinSDKBase::UserPtr *) jptr;
+    return (jint) userPtr->get()->GetPinLength();
+}
+
 static JNINativeMethod g_methodsUser[] =
         {
                 NATIVE_METHOD(nDestruct, "(J)V"),
@@ -77,7 +82,8 @@ static JNINativeMethod g_methodsUser[] =
                 NATIVE_METHOD(nGetBackend, "(J)Ljava/lang/String;"),
                 NATIVE_METHOD(nGetCustomerId, "(J)Ljava/lang/String;"),
                 NATIVE_METHOD(nGetAppId, "(J)Ljava/lang/String;"),
-                NATIVE_METHOD(nCanSign, "(J)Z")
+                NATIVE_METHOD(nCanSign, "(J)Z"),
+                NATIVE_METHOD(nGetPinLength, "(J)I")
         };
 
 void RegisterUserJNI(JNIEnv *env) {
