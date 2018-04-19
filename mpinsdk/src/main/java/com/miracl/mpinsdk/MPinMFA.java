@@ -221,6 +221,9 @@ public class MPinMFA implements Closeable {
     public boolean verifyDocumentHash(String document, byte[] hash) {
         return nVerifyDocumentHash(mPtr, document, hash);
     }
+    public boolean isRegistrationTokenSet(User user) {
+        return nIsRegistrationTokenSet(mPtr, user);
+    }
 
     public Status sign(User user, byte[] documentHash, String secret, int epochTime, String authzToken, Signature signature) {
         return nSign(mPtr, user, documentHash, secret, epochTime, authzToken, signature);
@@ -249,7 +252,6 @@ public class MPinMFA implements Closeable {
     private native void nAddTrustedDomain(long ptr, String domain);
 
     private native void nClearTrustedDomains(long ptr);
-
 
     private native Status nTestBackend(long ptr, String server);
 
@@ -297,7 +299,6 @@ public class MPinMFA implements Closeable {
 
     private native Status nFinishRegistrationDVS(long ptr, User user, String[] multiFactor);
 
-
     private native Status nGetAccessCode(long ptr, String authUrl, StringBuilder accessCode);
 
     private native Status nStartAuthentication(long ptr, User user, String accessCode);
@@ -318,7 +319,6 @@ public class MPinMFA implements Closeable {
     private native Status nFinishAuthenticationAuthCodeMultiFactor(long ptr, User user, String[] multiFactor, String accessCode,
                                                                    StringBuilder authCode);
 
-
     private native boolean nVerifyDocumentHash(long ptr, String document, byte[] hash);
 
     private native Status nSign(long ptr, User user, byte[] documentHash, String secret, int epochTime, String authzToken, Signature signature);
@@ -326,6 +326,7 @@ public class MPinMFA implements Closeable {
     private native Status nSignMultiFactor(long ptr, User user, byte[] documentHash, String[] multiFactor, int epochTime, String authzToken,
                                            Signature signature);
 
-
     private native Status nListUsers(long ptr, List<User> users);
+
+    private native boolean nIsRegistrationTokenSet(long ptr, User user);
 }

@@ -968,6 +968,22 @@ public class MPinMfaAsync {
     }
 
     /**
+     * Performs a check whether a registration token is set during a user registration.
+     * @param user
+     * A {@link User} object in a non confirmed state
+     * @param callback
+     * The callback returning true or false depending on whether a token has been submitted during registration.
+     */
+    public void IsRegistrationTokenSet(@NonNull final User user, final @NonNull Callback<Boolean> callback) {
+        mWorkerHandler.post(new Runnable() {
+
+            @Override
+            public void run() {
+            callback.onResult(new Status(Status.Code.OK, ""), mMfaSdk.isRegistrationTokenSet(user));
+            }
+        });
+    }
+    /**
      * Get storage with cached information for the SDK such as cached {@link ServiceDetails} or information about who the last
      * successfully logged-in user is.
      */
