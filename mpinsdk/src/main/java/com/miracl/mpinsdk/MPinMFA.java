@@ -221,6 +221,7 @@ public class MPinMFA implements Closeable {
     public boolean verifyDocumentHash(String document, byte[] hash) {
         return nVerifyDocumentHash(mPtr, document, hash);
     }
+
     public boolean isRegistrationTokenSet(User user) {
         return nIsRegistrationTokenSet(mPtr, user);
     }
@@ -235,6 +236,10 @@ public class MPinMFA implements Closeable {
 
     public Status listUsers(List<User> users) {
         return nListUsers(mPtr, users);
+    }
+
+    public Status setRegistrationToken(User user, String regToken) {
+        return nSetRegistrationToken(mPtr, user, regToken);
     }
 
     // Native methods from MPinSDKBase
@@ -316,17 +321,17 @@ public class MPinMFA implements Closeable {
     private native Status nFinishAuthenticationAuthCode(long ptr, User user, String secret, String accessCode,
                                                         StringBuilder authCode);
 
-    private native Status nFinishAuthenticationAuthCodeMultiFactor(long ptr, User user, String[] multiFactor, String accessCode,
-                                                                   StringBuilder authCode);
+    private native Status nFinishAuthenticationAuthCodeMultiFactor(long ptr, User user, String[] multiFactor, String accessCode, StringBuilder authCode);
 
     private native boolean nVerifyDocumentHash(long ptr, String document, byte[] hash);
 
     private native Status nSign(long ptr, User user, byte[] documentHash, String secret, int epochTime, String authzToken, Signature signature);
 
-    private native Status nSignMultiFactor(long ptr, User user, byte[] documentHash, String[] multiFactor, int epochTime, String authzToken,
-                                           Signature signature);
+    private native Status nSignMultiFactor(long ptr, User user, byte[] documentHash, String[] multiFactor, int epochTime, String authzToken, Signature signature);
 
     private native Status nListUsers(long ptr, List<User> users);
+
+    private native Status nSetRegistrationToken(long ptr, User user, String regToken);
 
     private native boolean nIsRegistrationTokenSet(long ptr, User user);
 }

@@ -434,12 +434,18 @@ static jobject nListUsers(JNIEnv* env, jobject jobj, jlong jptr, jobject jusersL
     return MakeJavaStatus(env,status);
 }
 
+static jobject nSetRegistrationToken(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring regToken)
+{
+    MfaSDK* sdk = (MfaSDK*) jptr;
+    return MakeJavaStatus(env, sdk->SetRegistrationToken(JavaToMPinUser(env, juser), JavaToStdString(env, regToken)));
+}
+
 // Mappings for java native methods
 static JNINativeMethod g_methodsMfaSDK[] =
 {
-	NATIVE_METHOD(nConstruct, "()J"),
-	NATIVE_METHOD(nDestruct, "(J)V"),
-	NATIVE_METHOD(nInit, "(JLjava/util/Map;Landroid/content/Context;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nConstruct, "()J"),
+    NATIVE_METHOD(nDestruct, "(J)V"),
+    NATIVE_METHOD(nInit, "(JLjava/util/Map;Landroid/content/Context;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nAddCustomHeaders, "(JLjava/util/Map;)V"),
     NATIVE_METHOD(nClearCustomHeaders, "(J)V"),
     NATIVE_METHOD(nAddTrustedDomain, "(JLjava/lang/String;)V"),
@@ -460,18 +466,18 @@ static JNINativeMethod g_methodsMfaSDK[] =
     NATIVE_METHOD(nSetCID, "(JLjava/lang/String;)V"),
     NATIVE_METHOD(nAbortSession, "(JLjava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nStartRegistration, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
-	NATIVE_METHOD(nRestartRegistration, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),
-	NATIVE_METHOD(nConfirmRegistration, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),
-	NATIVE_METHOD(nFinishRegistration, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nRestartRegistration, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nConfirmRegistration, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nFinishRegistration, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishRegistrationMultiFactor, "(JLcom/miracl/mpinsdk/model/User;[Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nStartRegistrationDVS, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishRegistrationDVS, "(JLcom/miracl/mpinsdk/model/User;[Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
-	NATIVE_METHOD(nGetAccessCode, "(JLjava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nGetAccessCode, "(JLjava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nStartAuthenticationOTP, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),
-	NATIVE_METHOD(nStartAuthentication, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
-	NATIVE_METHOD(nFinishAuthentication, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nStartAuthentication, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nFinishAuthentication, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishAuthenticationMultiFactor, "(JLcom/miracl/mpinsdk/model/User;[Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
-	NATIVE_METHOD(nFinishAuthenticationAuthCode, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nFinishAuthenticationAuthCode, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishAuthenticationAuthCodeMultiFactor, "(JLcom/miracl/mpinsdk/model/User;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishAuthenticationOTP, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Lcom/miracl/mpinsdk/model/OTP;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishAuthenticationOTPMultiFactor, "(JLcom/miracl/mpinsdk/model/User;[Ljava/lang/String;Lcom/miracl/mpinsdk/model/OTP;)Lcom/miracl/mpinsdk/model/Status;"),
@@ -479,6 +485,7 @@ static JNINativeMethod g_methodsMfaSDK[] =
     NATIVE_METHOD(nSign, "(JLcom/miracl/mpinsdk/model/User;[BLjava/lang/String;ILjava/lang/String;Lcom/miracl/mpinsdk/model/Signature;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nSignMultiFactor, "(JLcom/miracl/mpinsdk/model/User;[B[Ljava/lang/String;ILjava/lang/String;Lcom/miracl/mpinsdk/model/Signature;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nListUsers, "(JLjava/util/List;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nSetRegistrationToken, "(JLcom/miracl/mpinsdk/model/User;JLjava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nIsRegistrationTokenSet, "(JLcom/miracl/mpinsdk/model/User;)Z")
 };
 

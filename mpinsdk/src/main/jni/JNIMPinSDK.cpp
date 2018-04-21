@@ -234,6 +234,12 @@ static jobject nFinishAuthenticationResultDataMultiFactor(JNIEnv* env, jobject j
     return FinishAuthenticationResultData(env, jobj, jptr, juser, JavaStringArrayToMultiFactor(env, jMultiFactor), jresultData);
 }
 
+static jboolean nIsRegistrationTokenSet(JNIEnv* env, jobject jobj, jlong jptr, jobject juser)
+{
+    MfaSDK* sdk = (MfaSDK*) jptr;
+    return (jboolean) sdk->IsRegistrationTokenSet(JavaToMPinUser(env, juser));
+}
+
 static jobject FinishAuthenticationOTP(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, MPinSDK::MultiFactor multiFactor, jobject jotp)
 {
     MPinSDK* sdk = (MPinSDK*) jptr;
@@ -411,7 +417,8 @@ static JNINativeMethod g_methodsMPinSDK[] =
 	NATIVE_METHOD(nListUsers, "(JLjava/util/List;)Lcom/miracl/mpinsdk/model/Status;"),
 	NATIVE_METHOD(nListAllUsers, "(JLjava/util/List;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nListUsersForBackend, "(JLjava/util/List;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
-    NATIVE_METHOD(nListBackends, "(JLjava/util/List;)Lcom/miracl/mpinsdk/model/Status;")
+    NATIVE_METHOD(nListBackends, "(JLjava/util/List;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nIsRegistrationTokenSet, "(JLcom/miracl/mpinsdk/model/User;)Z")
 };
 
 void RegisterMPinSDKJNI(JNIEnv* env)
