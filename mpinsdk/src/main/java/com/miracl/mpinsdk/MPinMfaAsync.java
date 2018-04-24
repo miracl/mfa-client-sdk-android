@@ -202,7 +202,6 @@ public class MPinMfaAsync {
      * @param callback
      *   The callback for the operation. Can be <code>null</code> and the operation will still be executed.
      * @see #setBackend(ServiceDetails, Callback)
-     * @see #setBackend(User, Callback)
      */
     public void addTrustedDomains(@NonNull final String[] domains, @Nullable final Callback<Void> callback) {
         mWorkerHandler.post(new Runnable() {
