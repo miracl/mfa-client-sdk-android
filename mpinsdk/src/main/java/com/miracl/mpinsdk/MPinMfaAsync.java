@@ -310,19 +310,19 @@ public class MPinMfaAsync {
      * @param callback
      *   Callback for the operation. Can be <code>null</code>.
      */
-    public void setBackend(@NonNull final User user, @Nullable final Callback<Void> callback) {
-        mWorkerHandler.post(new Runnable() {
+    // public void setBackend(@NonNull final User user, @Nullable final Callback<Void> callback) {
+    //     mWorkerHandler.post(new Runnable() {
 
-            @Override
-            public void run() {
+    //         @Override
+    //         public void run() {
 
-                Status status = mMfaSdk.setBackend("https://" + user.getBackend());
-                if (callback != null) {
-                    callback.onResult(status, null);
-                }
-            }
-        });
-    }
+    //             Status status = mMfaSdk.setBackend("https://" + user.getBackend());
+    //             if (callback != null) {
+    //                 callback.onResult(status, null);
+    //             }
+    //         }
+    //     });
+    // }
 
 
     /**
