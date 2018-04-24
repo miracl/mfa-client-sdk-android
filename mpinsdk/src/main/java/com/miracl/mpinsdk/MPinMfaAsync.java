@@ -302,14 +302,14 @@ public class MPinMfaAsync {
         });
     }
 
-    /**
-     * Set the backend for the sdk from the specified user
-     *
-     * @param user
-     *   The user for which to set the backend
-     * @param callback
-     *   Callback for the operation. Can be <code>null</code>.
-     */
+    // /**
+    //  * Set the backend for the sdk from the specified user
+    //  *
+    //  * @param user
+    //  *   The user for which to set the backend
+    //  * @param callback
+    //  *   Callback for the operation. Can be <code>null</code>.
+    //  */
     // public void setBackend(@NonNull final User user, @Nullable final Callback<Void> callback) {
     //     mWorkerHandler.post(new Runnable() {
 
