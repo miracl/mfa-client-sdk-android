@@ -202,7 +202,6 @@ public class MPinMfaAsync {
      * @param callback
      *   The callback for the operation. Can be <code>null</code> and the operation will still be executed.
      * @see #setBackend(ServiceDetails, Callback)
-     * @see #setBackend(User, Callback)
      */
     public void addTrustedDomains(@NonNull final String[] domains, @Nullable final Callback<Void> callback) {
         mWorkerHandler.post(new Runnable() {
@@ -302,27 +301,27 @@ public class MPinMfaAsync {
         });
     }
 
-    /**
-     * Set the backend for the sdk from the specified user
-     *
-     * @param user
-     *   The user for which to set the backend
-     * @param callback
-     *   Callback for the operation. Can be <code>null</code>.
-     */
-    public void setBackend(@NonNull final User user, @Nullable final Callback<Void> callback) {
-        mWorkerHandler.post(new Runnable() {
+    // /**
+    //  * Set the backend for the sdk from the specified user
+    //  *
+    //  * @param user
+    //  *   The user for which to set the backend
+    //  * @param callback
+    //  *   Callback for the operation. Can be <code>null</code>.
+    //  */
+    // public void setBackend(@NonNull final User user, @Nullable final Callback<Void> callback) {
+    //     mWorkerHandler.post(new Runnable() {
 
-            @Override
-            public void run() {
+    //         @Override
+    //         public void run() {
 
-                Status status = mMfaSdk.setBackend("https://" + user.getBackend());
-                if (callback != null) {
-                    callback.onResult(status, null);
-                }
-            }
-        });
-    }
+    //             Status status = mMfaSdk.setBackend("https://" + user.getBackend());
+    //             if (callback != null) {
+    //                 callback.onResult(status, null);
+    //             }
+    //         }
+    //     });
+    // }
 
 
     /**
