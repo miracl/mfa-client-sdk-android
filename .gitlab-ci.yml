@@ -1,0 +1,84 @@
+stages:
+  - build
+  - deploy
+
+.script-template: &script-template
+  script:
+    # Preparing gradle.properties
+    - sed -i '' 's#https://maven.miracl.com#$MAVEN_URL#g' gradle.properties
+    - SAVE_IFS=$IFS && IFS='|'
+    - printf "\n" >> gradle.properties
+    - for KV_PAIR in $GRADLE_PROPS; do
+    -   printf "$(echo $KV_PAIR | xargs)\n" >> gradle.properties
+    - done
+    # Preparing mpinsdk/build.gradle
+    - printf "\n" >> mpinsdk/build.gradle
+    - for KV_PAIR in $BUILD_GRADLE; do
+    -   printf "$(echo $KV_PAIR | xargs)\n" >> mpinsdk/build.gradle
+    - done
+    - IFS=$SAVE_IFS
+    # Launch Gradle
+    - ./gradlew $GRADLE_TASKS $GRADLE_PARAMS
+
+build:
+  <<: *script-template
+  stage: build
+  variables:
+    GRADLE_PROPS: storeFile=../mpin-key-store.jks |
+        keyAlias=mpin-sample-app |
+        storePassword=$STORE_PASSWORD |
+        keyPassword=$KEY_PASSWORD
+    GRADLE_TASKS: clean
+        assembleRelease
+    GRADLE_PARAMS: -PversionCode=$CI_PIPELINE_ID
+  artifacts:
+    paths:
+      - mfa-sdk-android/mpinsdk/build/outputs/aar/*release.aar
+  tags:
+    - mac
+
+.deploy-template: &deploy-template
+  <<: *script-template
+  stage: deploy
+  variables:
+    GRADLE_PROPS: storeFile=../mpin-key-store.jks |
+        keyAlias=mpin-sample-app |
+        storePassword=$STORE_PASSWORD |
+        keyPassword=$KEY_PASSWORD |
+        NEXUS_USERNAME=$NEXUS_USERNAME |
+        NEXUS_PASSWORD=$NEXUS_PASSWORD |
+        VERSION_CODE=$CI_PIPELINE_ID |
+        GROUP=com.miracl |
+        POM_DESCRIPTION=M-Pin Android SDK |
+        POM_URL= |
+        POM_SCM_URL= |
+        POM_SCM_CONNECTION= |
+        POM_SCM_DEV_CONNECTION= |
+        POM_LICENCE_DIST= |
+        POM_DEVELOPER_ID= |
+        POM_DEVELOPER_NAME= |
+        POM_LICENCE_NAME=The Apache Software License, Version 2.0 |
+        POM_LICENCE_URL=http://www.apache.org/licenses/LICENSE-2.0.txt
+    BUILD_GRADLE:
+        "apply from: \\'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle\\'"
+    GRADLE_TASKS: uploadArchives
+  dependencies:
+    - build
+  when: manual
+  tags:
+    - mac
+
+deploy:snapshot:
+  <<: *deploy-template
+  before_script:
+    - GRADLE_PROPS="$GRADLE_PROPS | SNAPSHOT_REPOSITORY_URL=$MAVEN_URL/content/repositories/mpinsdk-snapshot/"
+    - GRADLE_PROPS="$GRADLE_PROPS | VERSION_NAME=$(cat $CI_PROJECT_DIR/VERSION)-SNAPSHOT"
+
+deploy:release:
+  <<: *deploy-template
+  before_script:
+    - GRADLE_PROPS="$GRADLE_PROPS | RELEASE_REPOSITORY_URL=$MAVEN_URL/content/repositories/mpinsdk/"  
+    - GRADLE_PROPS="$GRADLE_PROPS | VERSION_NAME=$(cat $CI_PROJECT_DIR/VERSION)"
+  only:
+    - master
+    - tags
