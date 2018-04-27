@@ -83,5 +83,6 @@ deploy:release:
     - GRADLE_PROPS="$GRADLE_PROPS | RELEASE_REPOSITORY_URL=$MAVEN_URL/content/repositories/mpinsdk/"  
     - GRADLE_PROPS="$GRADLE_PROPS | VERSION_NAME=$(cat $CI_PROJECT_DIR/VERSION)"
   only:
-    - master
     - tags
+  except:
+    - branches
