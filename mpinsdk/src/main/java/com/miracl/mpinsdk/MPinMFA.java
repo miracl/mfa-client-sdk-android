@@ -21,6 +21,7 @@ package com.miracl.mpinsdk;
 import android.content.Context;
 
 import com.miracl.mpinsdk.model.OTP;
+import com.miracl.mpinsdk.model.RegCode;
 import com.miracl.mpinsdk.model.ServiceDetails;
 import com.miracl.mpinsdk.model.SessionDetails;
 import com.miracl.mpinsdk.model.Signature;
@@ -157,6 +158,10 @@ public class MPinMFA implements Closeable {
         return nStartRegistration(mPtr, user, accessCode, pushToken);
     }
 
+    public Status startRegistration(User user, String accessCode, String pushToken, String regCode) {
+        return nStartRegistration(mPtr, user, accessCode, pushToken, regCode);
+    }
+
     public Status restartRegistration(User user) {
         return nRestartRegistration(mPtr, user);
     }
@@ -194,6 +199,10 @@ public class MPinMFA implements Closeable {
         return nStartAuthenticationOTP(mPtr, user);
     }
 
+    public Status startAuthenticationRegCode(User user) {
+        return nStartAuthenticationRegCode(mPtr, user);
+    }
+
     public Status finishAuthentication(User user, String secret, String accessCode) {
         return nFinishAuthentication(mPtr, user, secret, accessCode);
     }
@@ -216,6 +225,10 @@ public class MPinMFA implements Closeable {
 
     public Status finishAuthenticationOtp(User user, String[] multiFactor, OTP otp) {
         return nFinishAuthenticationOTPMultiFactor(mPtr, user, multiFactor, otp);
+    }
+
+    public Status finishAuthenticationRegCode(User user, String[] multiFactor, RegCode regCode) {
+        return nFinishAuthenticationRegCode(mPtr, user, multiFactor, regCode);
     }
 
     public boolean verifyDocumentHash(String document, byte[] hash) {
@@ -292,6 +305,8 @@ public class MPinMFA implements Closeable {
 
     private native Status nStartRegistration(long ptr, User user, String accessCode, String pushToken);
 
+    private native Status nStartRegistration(long ptr, User user, String accessCode, String pushToken, String regCode);
+
     private native Status nRestartRegistration(long ptr, User user);
 
     private native Status nConfirmRegistration(long ptr, User user);
@@ -310,6 +325,8 @@ public class MPinMFA implements Closeable {
 
     private native Status nStartAuthenticationOTP(long ptr, User user);
 
+    private native Status nStartAuthenticationRegCode(long mPtr, User user);
+
     private native Status nFinishAuthentication(long ptr, User user, String secret, String accessCode);
 
     private native Status nFinishAuthenticationMultiFactor(long ptr, User user, String[] multiFactor, String accessCode);
@@ -322,6 +339,8 @@ public class MPinMFA implements Closeable {
                                                         StringBuilder authCode);
 
     private native Status nFinishAuthenticationAuthCodeMultiFactor(long ptr, User user, String[] multiFactor, String accessCode, StringBuilder authCode);
+
+    private native Status nFinishAuthenticationRegCode(long mPtr, User user, String[] multiFactor, RegCode regCode);
 
     private native boolean nVerifyDocumentHash(long ptr, String document, byte[] hash);
 
