@@ -159,7 +159,7 @@ public class MPinMFA implements Closeable {
     }
 
     public Status startRegistration(User user, String accessCode, String pushToken, String regCode) {
-        return nStartRegistration(mPtr, user, accessCode, pushToken, regCode);
+        return nStartRegistrationRegCode(mPtr, user, accessCode, pushToken, regCode);
     }
 
     public Status restartRegistration(User user) {
@@ -185,7 +185,6 @@ public class MPinMFA implements Closeable {
     public Status finishRegistrationDvs(User user, String[] multiFactor) {
         return nFinishRegistrationDVS(mPtr, user, multiFactor);
     }
-
 
     public Status getAccessCode(String authUrl, StringBuilder accessCode) {
         return nGetAccessCode(mPtr, authUrl, accessCode);
@@ -305,7 +304,7 @@ public class MPinMFA implements Closeable {
 
     private native Status nStartRegistration(long ptr, User user, String accessCode, String pushToken);
 
-    private native Status nStartRegistration(long ptr, User user, String accessCode, String pushToken, String regCode);
+    private native Status nStartRegistrationRegCode(long ptr, User user, String accessCode, String pushToken, String regCode);
 
     private native Status nRestartRegistration(long ptr, User user);
 
