@@ -21,4 +21,5 @@ package com.miracl.mpinsdk.intent;
 public class MPinIntent {
 
     public static final String ACTION_MPIN_STORAGE_CLEARED = "com.miracl.mpinsdk.intent.ACTION_MPIN_STORAGE_CLEARED";
+    public static final String USER_SHOULD_AUTHENTICATE = "com.miracl.mpinsdk.intent.USER_SHOULD_AUTHENTICATE";
 }

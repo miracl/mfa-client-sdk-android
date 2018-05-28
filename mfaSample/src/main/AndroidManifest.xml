@@ -36,6 +36,15 @@
             android:name=".RegistrationSuccessfulActivity"
             android:label="@string/label_registration_successful"
             android:screenOrientation="portrait" />
+
+        <receiver
+            android:name=".receivers.AuthenticationRequestReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.miracl.mpinsdk.intent.USER_SHOULD_AUTHENTICATE" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

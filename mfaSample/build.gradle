@@ -29,4 +29,5 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:26.1.0'
 
     implementation 'me.dm7.barcodescanner:zbar:1.9.3'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
 }

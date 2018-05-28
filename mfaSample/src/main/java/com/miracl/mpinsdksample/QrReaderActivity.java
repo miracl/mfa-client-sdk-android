@@ -19,15 +19,19 @@
 package com.miracl.mpinsdksample;
 
 import android.Manifest;
+import android.app.KeyguardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -42,6 +46,7 @@ import com.miracl.mpinsdk.model.SessionDetails;
 import com.miracl.mpinsdk.model.Status;
 import com.miracl.mpinsdk.model.User;
 import com.miracl.mpinsdksample.util.CameraPreview;
+import com.miracl.mpinsdksample.util.StorageAuthenticationBroadcastObserver;
 import com.miracl.mpinsdksample.util.ToastUtils;
 
 import net.sourceforge.zbar.Config;
@@ -52,8 +57,10 @@ import net.sourceforge.zbar.SymbolSet;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
-public class QrReaderActivity extends AppCompatActivity implements EnterPinDialog.EventListener {
+public class QrReaderActivity extends AppCompatActivity implements EnterPinDialog.EventListener, Observer {
 
     static {
         // QR reader lib
@@ -61,7 +68,7 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
     }
 
     private static final int REQUEST_CAMERA_PERMISSION = 4321;
-
+    private static final int REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS = 1;
     private static final int FRAME_TIMEOUT = 300;
 
     private Camera.PreviewCallback mPreviewCallBack;
@@ -80,10 +87,13 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
     private String         mCurrentAccessCode;
     private User           mCurrentUser;
     private ServiceDetails mCurrentServiceDetails;
+    private int authenticationRequests;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        StorageAuthenticationBroadcastObserver.getInstance().addObserver(this);
+
         setContentView(R.layout.activity_qr_reader);
 
         mCameraContainer = (FrameLayout) findViewById(R.id.qr_reader_camera_container);
@@ -95,6 +105,7 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
         mScanner.setConfig(Symbol.QRCODE, Config.ENABLE, 1);
 
         mEnterPinDialog = new EnterPinDialog(this, this);
+
     }
 
     @Override
@@ -194,7 +205,12 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
         // Check if the url from the qr has the expected parts
         if (qrUri.getScheme() != null && qrUri.getAuthority() != null && qrUri.getFragment() != null && !qrUri.getFragment()
           .isEmpty()) {
-
+            SampleApplication.getMfaSdk().setCid("mcl", new MPinMfaAsync.Callback<Void>() {
+                @Override
+                protected void onResult(@NonNull Status status, @Nullable Void result) {
+                    super.onResult(status, result);
+                }
+            });
             // Obtain the access code from the qr-read url
             mCurrentAccessCode = qrUri.getFragment();
 
@@ -436,6 +452,36 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
     private void releaseCamera() {
         if (mCameraPreview != null) {
             mCameraPreview.releaseCamera();
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void update(Observable o, Object arg) {
+        if(this.authenticationRequests == 0) {
+            KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+            Intent intent = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? keyguardManager.createConfirmDeviceCredentialIntent(null, null) : null;
+            boolean authenticateBeforeDecrypt = ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && keyguardManager.isDeviceSecure())
+                    || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && keyguardManager.isKeyguardSecure()))
+                    && intent != null;
+            if (authenticateBeforeDecrypt) {
+                startActivityForResult(intent, REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS);
+            }
+            synchronized (this) {
+                this.authenticationRequests++;
+            }
+        }
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS) {
+            // Challenge completed, proceed with using cipher
+            if (resultCode != RESULT_OK) {
+                Toast.makeText(this, "Authentication failed.", Toast.LENGTH_SHORT).show();
+            }
+            synchronized (this) {
+                this.authenticationRequests = 0;
+            }
         }
     }
 }
