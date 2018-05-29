@@ -23,7 +23,6 @@ import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.security.keystore.UserNotAuthenticatedException;
 
 import com.miracl.mpinsdk.helpers.EncryptionHelper;
 import com.miracl.mpinsdk.intent.MPinIntent;
@@ -32,17 +31,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 
 public class Storage implements IStorage {
@@ -54,7 +42,6 @@ public class Storage implements IStorage {
     private final Context mContext;
     private final String  mFileName;
     private       String  mErrorMessage;
-    private KeyguardManager keyguardManager;
     private EncryptionHelper encryptionHelper;
 
     public Storage(Context context, boolean isMpinType) {
@@ -62,27 +49,38 @@ public class Storage implements IStorage {
         mFileName = isMpinType ? MPIN_STORAGE : USER_STORAGE;
         if(EncryptionHelper.encryptionHelperApplicable()) {
             encryptionHelper = new EncryptionHelper(context);
+            handleKeyAuthenticationState();
         }
-        handleUserAuthentication();
     }
 
-    private Boolean handleUserAuthentication() {
-        Boolean userAuthenticated = encryptionHelper.userIsAuthenticated();
-        if(encryptionHelper != null && !userAuthenticated) {
-            Intent userShouldAuthenticate = null;
+    private EncryptionHelper.CryptographicStatus handleKeyAuthenticationState() {
+        if(encryptionHelper == null) {
+            return EncryptionHelper.CryptographicStatus.NOT_ACTIVATED;
+        }
+        EncryptionHelper.CryptographicStatus keyAuthenticationState = encryptionHelper.getKeyAuthenticationState();
+        if(encryptionHelper != null && keyAuthenticationState.equals(EncryptionHelper.CryptographicStatus.USER_NOT_AUTHENTICATED)) {
+            Intent userShouldAuthenticate;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 userShouldAuthenticate = new Intent(MPinIntent.USER_SHOULD_AUTHENTICATE);
                 userShouldAuthenticate.setPackage(mContext.getPackageName());
                 mContext.sendBroadcast(userShouldAuthenticate);
             }
+        } else if(encryptionHelper != null && keyAuthenticationState.equals(EncryptionHelper.CryptographicStatus.KEY_PERMANENTLY_INVALIDATED)) {
+            Intent userShouldAuthenticate;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                encryptionHelper.resetKey();
+                userShouldAuthenticate = new Intent(MPinIntent.CONTENT_ENCRYPTION_KEY_PERMANENTLY_INVALIDATED);
+                userShouldAuthenticate.setPackage(mContext.getPackageName());
+                mContext.sendBroadcast(userShouldAuthenticate);
+            }
         }
-        return userAuthenticated;
+        return keyAuthenticationState;
     }
 
 
     @Override
     public boolean SetData(String data) {
-        if(handleUserAuthentication()) {
+        if(handleKeyAuthenticationState() == EncryptionHelper.CryptographicStatus.OK) {
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 data = encryptionHelper.getEncryptedBase64Payload(data);
             }
@@ -135,7 +133,7 @@ public class Storage implements IStorage {
                 }
             }
         }
-        if(handleUserAuthentication()) {
+        if(handleKeyAuthenticationState() == EncryptionHelper.CryptographicStatus.OK) {
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && data != null && !data.equals("")) {
                 data = encryptionHelper.decryptBase64EncodedPayload(data);
             }

@@ -1,6 +1,6 @@
 package com.miracl.mpinsdk.helpers;
 
-import android.app.KeyguardManager;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -33,25 +33,24 @@ import javax.crypto.spec.GCMParameterSpec;
 
 public class EncryptionHelper {
 
-    public static final String STORAGE_AES_KEY = "STORAGE_AES_KEY";
-    public static final String ANDROID_KEY_STORE = "AndroidKeyStore";
-    public static final String SHARED_PREFERENCES_FILE_KEY = "ContextSharedPreferences";
-    public static final String SHARED_PREFERENCES_IV_KEY = "IV_KEY";
+    private static final String STORAGE_AES_KEY = "STORAGE_AES_KEY";
+    private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
+    private static final String SHARED_PREFERENCES_FILE_KEY = "ContextSharedPreferences";
+    private static final String SHARED_PREFERENCES_IV_KEY = "IV_KEY";
     private static final String TAG = "EncryptionHelper";
 
 
-    private SecretKey key;
     private SharedPreferences.Editor sharedPreferencesEditor;
     private SharedPreferences sharedPreferences;
 
+    @SuppressLint("CommitPrefEdits")
     @RequiresApi(api = Build.VERSION_CODES.M)
     public EncryptionHelper(Context context) {
-        KeyguardManager keyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
         this.sharedPreferences = context.getSharedPreferences(SHARED_PREFERENCES_FILE_KEY, Context.MODE_PRIVATE);
         sharedPreferencesEditor = sharedPreferences.edit();
         try {
-            this.key = extractKeyFromKeyStore();
-            if(this.key == null) {
+            SecretKey key = extractKeyFromKeyStore();
+            if(key == null) {
                 generateSecureKey();
             }
         } catch (KeyStoreException e) {
@@ -64,17 +63,13 @@ public class EncryptionHelper {
             Log.e(TAG, e.toString());
         } catch (UnrecoverableEntryException e) {
             Log.e(TAG, e.toString());
-        } catch (InvalidAlgorithmParameterException e) {
-            Log.e(TAG, e.toString());
-        } catch (NoSuchProviderException e) {
-            Log.e(TAG, e.toString());
         }
     }
 
-    public Boolean userIsAuthenticated() {
+    public CryptographicStatus getKeyAuthenticationState() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
-                return encrypt("dummy").status == CryptographicStatus.OK;
+                return encrypt("dummy").getStatus();
             } catch (NoSuchPaddingException e) {
                 Log.e(TAG, e.toString());
             } catch (NoSuchAlgorithmException e) {
@@ -88,10 +83,8 @@ public class EncryptionHelper {
             } catch (UnsupportedEncodingException e) {
                 Log.e(TAG, e.toString());
             }
-
         }
-        //Strongly reconsider or document this logic.
-        return true;
+        return CryptographicStatus.NOT_SUPPORTED;
     }
 
     public static Boolean encryptionHelperApplicable() {
@@ -102,6 +95,10 @@ public class EncryptionHelper {
     public String getEncryptedBase64Payload(String payload) {
         try {
             CryptographicResult result = encrypt(payload);
+            if(result.getStatus() == CryptographicStatus.KEY_PERMANENTLY_INVALIDATED) {
+                resetKey();
+                generateSecureKey();
+            }
             return Base64.encodeToString(result.payload, Base64.DEFAULT);
         } catch (NoSuchPaddingException e) {
             Log.e(TAG, e.toString());
@@ -119,19 +116,29 @@ public class EncryptionHelper {
         return null;
     }
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private void generateSecureKey() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
-        final KeyGenerator keyGenerator = KeyGenerator
-                .getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
-        final KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder(STORAGE_AES_KEY,
-                KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                //This one is quite useful towards UX, but requires Android 7.0 at least
-                .setUserAuthenticationValidityDurationSeconds(40)
-                .setUserAuthenticationRequired(true)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                .build();
-        keyGenerator.init(keyGenParameterSpec);
-        this.key = keyGenerator.generateKey();
+    private void generateSecureKey() {
+        final KeyGenerator keyGenerator;
+        try {
+            keyGenerator = KeyGenerator
+                    .getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
+
+            final KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder(STORAGE_AES_KEY,
+                    KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                    //This one is quite useful towards UX, but requires Android 7.0 at least
+                    .setUserAuthenticationValidityDurationSeconds(40)
+                    .setUserAuthenticationRequired(true)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                    .build();
+            keyGenerator.init(keyGenParameterSpec);
+            keyGenerator.generateKey();
+        } catch (NoSuchAlgorithmException e) {
+            Log.e(TAG, e.toString());
+        } catch (NoSuchProviderException e) {
+            Log.e(TAG, e.toString());
+        } catch (InvalidAlgorithmParameterException e) {
+            Log.e(TAG, e.toString());
+        }
     }
     private SecretKey extractKeyFromKeyStore() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableEntryException {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
@@ -145,10 +152,10 @@ public class EncryptionHelper {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public CryptographicResult encrypt(String payload) throws InvalidKeyException, UnsupportedEncodingException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, NoSuchAlgorithmException {
+    private CryptographicResult encrypt(String payload) throws InvalidKeyException, UnsupportedEncodingException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, NoSuchAlgorithmException {
         try {
             final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            cipher.init(Cipher.ENCRYPT_MODE, this.key);
+            cipher.init(Cipher.ENCRYPT_MODE, extractKeyFromKeyStore());
             byte[] encryptedPayload = cipher.doFinal(payload.getBytes("UTF-8"));
             this.setIV(cipher.getIV());
             return new CryptographicResult(encryptedPayload, CryptographicStatus.OK);
@@ -177,12 +184,11 @@ public class EncryptionHelper {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public CryptographicResult decrypt(byte[] data) {
+    private CryptographicResult decrypt(byte[] data) {
         try {
             final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             final GCMParameterSpec spec = new GCMParameterSpec(128, getIV());
-            cipher.init(Cipher.DECRYPT_MODE, this.key, spec);
-            String decryptedPayload = new String(cipher.doFinal(data), "UTF-8");
+            cipher.init(Cipher.DECRYPT_MODE, extractKeyFromKeyStore(), spec);
             return new CryptographicResult(cipher.doFinal(data), CryptographicStatus.USER_NOT_AUTHENTICATED);
         } catch (UserNotAuthenticatedException e) {
             return new CryptographicResult(null, CryptographicStatus.USER_NOT_AUTHENTICATED);
@@ -200,41 +206,55 @@ public class EncryptionHelper {
             Log.e(TAG, e.toString());
         } catch (IllegalBlockSizeException e) {
             Log.e(TAG, e.toString());
+        } catch (CertificateException e) {
+            Log.e(TAG, e.toString());
+        } catch (KeyStoreException e) {
+            e.printStackTrace();
+        } catch (UnrecoverableEntryException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return new CryptographicResult(null, CryptographicStatus.ERROR);
     }
 
-    public void resetKey() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
-        KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
-        keyStore.load(null);
-        keyStore.deleteEntry(STORAGE_AES_KEY);
+    public void resetKey() {
+        try {
+            KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
+            keyStore.load(null);
+            keyStore.deleteEntry(STORAGE_AES_KEY);
+        } catch (IOException e) {
+            Log.e(TAG, e.toString());
+        } catch (NoSuchAlgorithmException e) {
+            Log.e(TAG, e.toString());
+        } catch (CertificateException e) {
+            Log.e(TAG, e.toString());
+        } catch (KeyStoreException e) {
+            Log.e(TAG, e.toString());
+        }
     }
 
-    public byte[] getIV() {
+    private byte[] getIV() {
         String encodedIv = sharedPreferences.getString(SHARED_PREFERENCES_IV_KEY, "");
         return android.util.Base64.decode(encodedIv, android.util.Base64.DEFAULT);
     }
 
-    public void setIV(byte[] IV) {
+    private void setIV(byte[] IV) {
         String encoded = Base64.encodeToString(IV, Base64.DEFAULT);
         sharedPreferencesEditor.putString(SHARED_PREFERENCES_IV_KEY, encoded);
         sharedPreferencesEditor.commit();
     }
     public enum CryptographicStatus {
-        OK, ERROR, KEY_PERMANENTLY_INVALIDATED, USER_NOT_AUTHENTICATED
+        OK, ERROR, NOT_SUPPORTED, NOT_ACTIVATED, KEY_PERMANENTLY_INVALIDATED, USER_NOT_AUTHENTICATED
     }
-    public  class CryptographicResult {
+    public class CryptographicResult {
 
         private byte[] payload;
         private CryptographicStatus status;
 
-        public CryptographicResult(byte[] payload, CryptographicStatus status) {
+        CryptographicResult(byte[] payload, CryptographicStatus status) {
             this.payload = payload;
             this.status = status;
-        }
-
-        public byte[] getPayload() {
-            return payload;
         }
 
         public CryptographicStatus getStatus() {

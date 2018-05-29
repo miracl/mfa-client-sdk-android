@@ -19,8 +19,11 @@
 package com.miracl.mpinsdksample;
 
 import android.app.Application;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.miracl.mpinsdk.MPinMfaAsync;
+import com.miracl.mpinsdk.model.Status;
 
 public class SampleApplication extends Application {
 
@@ -32,7 +35,12 @@ public class SampleApplication extends Application {
     public void onCreate() {
         super.onCreate();
         sMPinMfa = new MPinMfaAsync(this);
-        sMPinMfa.init(this, getString(R.string.mpin_cid), null, null);
+        sMPinMfa.init(this, getString(R.string.mpin_cid), null, new MPinMfaAsync.Callback<Void>() {
+            @Override
+            protected void onResult(@NonNull Status status, @Nullable Void result) {
+                super.onResult(status, result);
+            }
+        });
     }
 
     public static MPinMfaAsync getMfaSdk() {

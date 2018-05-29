@@ -22,4 +22,5 @@ public class MPinIntent {
 
     public static final String ACTION_MPIN_STORAGE_CLEARED = "com.miracl.mpinsdk.intent.ACTION_MPIN_STORAGE_CLEARED";
     public static final String USER_SHOULD_AUTHENTICATE = "com.miracl.mpinsdk.intent.USER_SHOULD_AUTHENTICATE";
+    public static final String CONTENT_ENCRYPTION_KEY_PERMANENTLY_INVALIDATED = "com.miracl.mpinsdk.intent.CONTENT_ENCRYPTION_KEY_PERMANENTLY_INVALIDATED";
 }

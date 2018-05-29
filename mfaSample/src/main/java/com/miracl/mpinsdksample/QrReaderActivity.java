@@ -205,12 +205,6 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
         // Check if the url from the qr has the expected parts
         if (qrUri.getScheme() != null && qrUri.getAuthority() != null && qrUri.getFragment() != null && !qrUri.getFragment()
           .isEmpty()) {
-            SampleApplication.getMfaSdk().setCid("mcl", new MPinMfaAsync.Callback<Void>() {
-                @Override
-                protected void onResult(@NonNull Status status, @Nullable Void result) {
-                    super.onResult(status, result);
-                }
-            });
             // Obtain the access code from the qr-read url
             mCurrentAccessCode = qrUri.getFragment();
 
@@ -466,10 +460,11 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
                     && intent != null;
             if (authenticateBeforeDecrypt) {
                 startActivityForResult(intent, REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS);
+                synchronized (this) {
+                    this.authenticationRequests++;
+                }
             }
-            synchronized (this) {
-                this.authenticationRequests++;
-            }
+
         }
     }
     @Override
@@ -478,6 +473,13 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
             // Challenge completed, proceed with using cipher
             if (resultCode != RESULT_OK) {
                 Toast.makeText(this, "Authentication failed.", Toast.LENGTH_SHORT).show();
+            } else {
+                SampleApplication.getMfaSdk().init(this, getString(R.string.mpin_cid), null, new MPinMfaAsync.Callback<Void>() {
+                    @Override
+                    protected void onResult(@NonNull Status status, @Nullable Void result) {
+                        super.onResult(status, result);
+                    }
+                });
             }
             synchronized (this) {
                 this.authenticationRequests = 0;
