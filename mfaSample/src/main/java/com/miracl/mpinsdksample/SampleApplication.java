@@ -35,12 +35,7 @@ public class SampleApplication extends Application {
     public void onCreate() {
         super.onCreate();
         sMPinMfa = new MPinMfaAsync(this);
-        sMPinMfa.init(this, getString(R.string.mpin_cid), null, new MPinMfaAsync.Callback<Void>() {
-            @Override
-            protected void onResult(@NonNull Status status, @Nullable Void result) {
-                super.onResult(status, result);
-            }
-        });
+        sMPinMfa.init(this, getString(R.string.mpin_cid), null, null);
     }
 
     public static MPinMfaAsync getMfaSdk() {

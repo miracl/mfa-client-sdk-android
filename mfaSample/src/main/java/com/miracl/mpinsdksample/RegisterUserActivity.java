@@ -37,7 +37,7 @@ import com.miracl.mpinsdksample.util.ToastUtils;
 
 import static android.view.View.GONE;
 
-public class RegisterUserActivity extends AppCompatActivity implements View.OnClickListener, EnterPinDialog.EventListener {
+public class RegisterUserActivity extends BaseActivity implements View.OnClickListener, EnterPinDialog.EventListener {
 
     private EditText       mEmailInput;
     private Button         mSubmitButton;

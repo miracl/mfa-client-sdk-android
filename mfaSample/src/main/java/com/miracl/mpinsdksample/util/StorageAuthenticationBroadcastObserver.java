@@ -12,10 +12,10 @@ public class StorageAuthenticationBroadcastObserver extends Observable {
     private StorageAuthenticationBroadcastObserver() {
     }
 
-    public void change() {
+    public void change(String action) {
         synchronized (this) {
             setChanged();
-            notifyObservers();
+            notifyObservers(action);
         }
     }
 }

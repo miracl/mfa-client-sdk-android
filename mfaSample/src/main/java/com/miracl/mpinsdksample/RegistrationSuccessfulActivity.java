@@ -34,7 +34,7 @@ import com.miracl.mpinsdksample.util.ToastUtils;
 
 import java.util.ArrayList;
 
-public class RegistrationSuccessfulActivity extends AppCompatActivity implements View.OnClickListener,
+public class RegistrationSuccessfulActivity extends BaseActivity implements View.OnClickListener,
   EnterPinDialog.EventListener {
 
     private Button         mLoginButton;

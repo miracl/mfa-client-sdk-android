@@ -13,6 +13,6 @@ public class AuthenticationRequestReceiver extends BroadcastReceiver {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onReceive(Context context, Intent intent) {
-        StorageAuthenticationBroadcastObserver.getInstance().change();
+        StorageAuthenticationBroadcastObserver.getInstance().change(intent.getAction());
     }
 }

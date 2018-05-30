@@ -60,7 +60,7 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
-public class QrReaderActivity extends AppCompatActivity implements EnterPinDialog.EventListener, Observer {
+public class QrReaderActivity extends BaseActivity implements  EnterPinDialog.EventListener {
 
     static {
         // QR reader lib
@@ -68,7 +68,7 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
     }
 
     private static final int REQUEST_CAMERA_PERMISSION = 4321;
-    private static final int REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS = 1;
+
     private static final int FRAME_TIMEOUT = 300;
 
     private Camera.PreviewCallback mPreviewCallBack;
@@ -87,7 +87,6 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
     private String         mCurrentAccessCode;
     private User           mCurrentUser;
     private ServiceDetails mCurrentServiceDetails;
-    private int authenticationRequests;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -449,41 +448,5 @@ public class QrReaderActivity extends AppCompatActivity implements EnterPinDialo
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    @Override
-    public void update(Observable o, Object arg) {
-        if(this.authenticationRequests == 0) {
-            KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
-            Intent intent = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? keyguardManager.createConfirmDeviceCredentialIntent(null, null) : null;
-            boolean authenticateBeforeDecrypt = ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && keyguardManager.isDeviceSecure())
-                    || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && keyguardManager.isKeyguardSecure()))
-                    && intent != null;
-            if (authenticateBeforeDecrypt) {
-                startActivityForResult(intent, REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS);
-                synchronized (this) {
-                    this.authenticationRequests++;
-                }
-            }
 
-        }
-    }
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS) {
-            // Challenge completed, proceed with using cipher
-            if (resultCode != RESULT_OK) {
-                Toast.makeText(this, "Authentication failed.", Toast.LENGTH_SHORT).show();
-            } else {
-                SampleApplication.getMfaSdk().init(this, getString(R.string.mpin_cid), null, new MPinMfaAsync.Callback<Void>() {
-                    @Override
-                    protected void onResult(@NonNull Status status, @Nullable Void result) {
-                        super.onResult(status, result);
-                    }
-                });
-            }
-            synchronized (this) {
-                this.authenticationRequests = 0;
-            }
-        }
-    }
 }

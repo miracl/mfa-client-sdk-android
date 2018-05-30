@@ -20,9 +20,11 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 
+import javax.crypto.AEADBadTagException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -68,21 +70,7 @@ public class EncryptionHelper {
 
     public CryptographicStatus getKeyAuthenticationState() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                return encrypt("dummy").getStatus();
-            } catch (NoSuchPaddingException e) {
-                Log.e(TAG, e.toString());
-            } catch (NoSuchAlgorithmException e) {
-                Log.e(TAG, e.toString());
-            } catch (InvalidKeyException e) {
-                Log.e(TAG, e.toString());
-            } catch (IllegalBlockSizeException e) {
-                Log.e(TAG, e.toString());
-            } catch (BadPaddingException e) {
-                Log.e(TAG, e.toString());
-            } catch (UnsupportedEncodingException e) {
-                Log.e(TAG, e.toString());
-            }
+            return encrypt("dummy").getStatus();
         }
         return CryptographicStatus.NOT_SUPPORTED;
     }
@@ -93,27 +81,12 @@ public class EncryptionHelper {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public String getEncryptedBase64Payload(String payload) {
-        try {
-            CryptographicResult result = encrypt(payload);
-            if(result.getStatus() == CryptographicStatus.KEY_PERMANENTLY_INVALIDATED) {
-                resetKey();
-                generateSecureKey();
-            }
-            return Base64.encodeToString(result.payload, Base64.DEFAULT);
-        } catch (NoSuchPaddingException e) {
-            Log.e(TAG, e.toString());
-        } catch (NoSuchAlgorithmException e) {
-            Log.e(TAG, e.toString());
-        } catch (InvalidKeyException e) {
-            Log.e(TAG, e.toString());
-        } catch (IllegalBlockSizeException e) {
-            Log.e(TAG, e.toString());
-        } catch (BadPaddingException e) {
-            Log.e(TAG, e.toString());
-        } catch (UnsupportedEncodingException e) {
-            Log.e(TAG, e.toString());
+        CryptographicResult result = encrypt(payload);
+        if(result.getStatus() == CryptographicStatus.KEY_PERMANENTLY_INVALIDATED) {
+            resetKey();
+            generateSecureKey();
         }
-        return null;
+        return Base64.encodeToString(result.payload, Base64.DEFAULT);
     }
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void generateSecureKey() {
@@ -126,12 +99,16 @@ public class EncryptionHelper {
                     KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                     .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                     //This one is quite useful towards UX, but requires Android 7.0 at least
-                    .setUserAuthenticationValidityDurationSeconds(40)
+                    .setUserAuthenticationValidityDurationSeconds(600)
                     .setUserAuthenticationRequired(true)
+                    .setRandomizedEncryptionRequired(false)
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                     .build();
             keyGenerator.init(keyGenParameterSpec);
             keyGenerator.generateKey();
+            byte[] iv = new byte[12];
+            new SecureRandom().nextBytes(iv);
+            setIV(iv);
         } catch (NoSuchAlgorithmException e) {
             Log.e(TAG, e.toString());
         } catch (NoSuchProviderException e) {
@@ -152,10 +129,10 @@ public class EncryptionHelper {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private CryptographicResult encrypt(String payload) throws InvalidKeyException, UnsupportedEncodingException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, NoSuchAlgorithmException {
+    private CryptographicResult encrypt(String payload) {
         try {
             final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            cipher.init(Cipher.ENCRYPT_MODE, extractKeyFromKeyStore());
+            cipher.init(Cipher.ENCRYPT_MODE, extractKeyFromKeyStore(), new GCMParameterSpec(128, getIV()));
             byte[] encryptedPayload = cipher.doFinal(payload.getBytes("UTF-8"));
             this.setIV(cipher.getIV());
             return new CryptographicResult(encryptedPayload, CryptographicStatus.OK);
@@ -174,13 +151,15 @@ public class EncryptionHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             byte[] decryptedData = decrypt(Base64.decode(payload, Base64.DEFAULT)).payload;
             try {
+                if(decryptedData == null) {
+                    return "";
+                }
                 return new String(decryptedData, "UTF-8");
             } catch (UnsupportedEncodingException e) {
                 Log.e(TAG, e.toString());
-                return null;
             }
         }
-        return null;
+        return "";
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -189,7 +168,7 @@ public class EncryptionHelper {
             final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             final GCMParameterSpec spec = new GCMParameterSpec(128, getIV());
             cipher.init(Cipher.DECRYPT_MODE, extractKeyFromKeyStore(), spec);
-            return new CryptographicResult(cipher.doFinal(data), CryptographicStatus.USER_NOT_AUTHENTICATED);
+            return new CryptographicResult(cipher.doFinal(data), CryptographicStatus.OK);
         } catch (UserNotAuthenticatedException e) {
             return new CryptographicResult(null, CryptographicStatus.USER_NOT_AUTHENTICATED);
         } catch (NoSuchAlgorithmException e) {
@@ -200,6 +179,8 @@ public class EncryptionHelper {
             Log.e(TAG, e.toString());
         } catch (NoSuchPaddingException e) {
             Log.e(TAG, e.toString());
+        } catch (AEADBadTagException e) {
+            Log.e(TAG, e.toString());
         } catch (BadPaddingException e) {
             Log.e(TAG, e.toString());
         } catch (UnsupportedEncodingException e) {
@@ -209,11 +190,11 @@ public class EncryptionHelper {
         } catch (CertificateException e) {
             Log.e(TAG, e.toString());
         } catch (KeyStoreException e) {
-            e.printStackTrace();
+            Log.e(TAG, e.toString());
         } catch (UnrecoverableEntryException e) {
-            e.printStackTrace();
+            Log.e(TAG, e.toString());
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, e.toString());
         }
         return new CryptographicResult(null, CryptographicStatus.ERROR);
     }

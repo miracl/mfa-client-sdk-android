@@ -19,7 +19,6 @@
 package com.miracl.mpinsdk.storage;
 
 
-import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -136,6 +135,7 @@ public class Storage implements IStorage {
         if(handleKeyAuthenticationState() == EncryptionHelper.CryptographicStatus.OK) {
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && data != null && !data.equals("")) {
                 data = encryptionHelper.decryptBase64EncodedPayload(data);
+
             }
         }
         return data;
