@@ -15,4 +15,6 @@
     <string name="identity_created">Identity Created</string>
     <string name="button_login">Login</string>
     <string name="label_registration_successful">Registration Successful</string>
+    <string name="message_encryption_key_invalidated">Your data encryption key has been invalidated due to change in your authentication factors. The application cannot retrieve the existing information, please start your registration process over.</string>
+    <string name="button_continue">Continue</string>
 </resources>

@@ -19,12 +19,36 @@ import java.util.Observer;
 public class BaseActivity extends AppCompatActivity implements Observer {
 
     private static final int REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS = 1;
-
+    public static final String USER_SHOULD_AUTHENTICATE = "com.miracl.mpinsdk.intent.USER_SHOULD_AUTHENTICATE";
+    public static final String CONTENT_ENCRYPTION_KEY_PERMANENTLY_INVALIDATED = "com.miracl.mpinsdk.intent.CONTENT_ENCRYPTION_KEY_PERMANENTLY_INVALIDATED";
     private int authenticationRequests;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void update(Observable o, Object arg) {
+        if (arg == null) {
+            return;
+        }
+        switch (arg.toString()) {
+            case USER_SHOULD_AUTHENTICATE:
+                showAuthenticationScreen();
+                break;
+            case CONTENT_ENCRYPTION_KEY_PERMANENTLY_INVALIDATED:
+                SampleApplication.getMfaSdk().init(this, getString(R.string.mpin_cid), null, new MPinMfaAsync.Callback<Void>() {
+                    @Override
+                    protected void onResult(@NonNull Status status, @Nullable Void result) {
+                        super.onResult(status, result);
+                        startActivity(new Intent(BaseActivity.this, EncryptionKeyExpired.class));
+                        finish();
+                        return;
+                    }
+                });
+                break;
+        }
+
+    }
+
+    private void showAuthenticationScreen() {
         if(this.authenticationRequests == 0) {
             KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
             Intent intent = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? keyguardManager.createConfirmDeviceCredentialIntent(null, null) : null;
@@ -40,6 +64,7 @@ public class BaseActivity extends AppCompatActivity implements Observer {
 
         }
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS) {
