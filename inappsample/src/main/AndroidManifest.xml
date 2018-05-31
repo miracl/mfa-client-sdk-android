@@ -24,6 +24,14 @@
         <activity
             android:name=".RegisterUserActivity"
             android:screenOrientation="portrait" />
+        <receiver
+            android:name=".receivers.AuthenticationRequestReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.miracl.mpinsdk.intent.USER_SHOULD_AUTHENTICATE" />
+                <action android:name="com.miracl.mpinsdk.intent.CONTENT_ENCRYPTION_KEY_PERMANENTLY_INVALIDATED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

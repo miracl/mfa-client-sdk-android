@@ -38,7 +38,7 @@ import com.miracl.mpinsdk.model.User;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LoginActivity extends AppCompatActivity implements EnterPinDialog.EventListener {
+public class LoginActivity extends BaseActivity implements EnterPinDialog.EventListener {
 
     private User           mCurrentUser;
     private EnterPinDialog mEnterPinDialog;
