@@ -19,10 +19,12 @@
 package com.miracl.mpinsdksample;
 
 import android.app.Application;
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.miracl.mpinsdk.MPinMfaAsync;
+import com.miracl.mpinsdk.helpers.EncryptionHelper;
 import com.miracl.mpinsdk.model.Status;
 
 public class SampleApplication extends Application {
@@ -34,6 +36,8 @@ public class SampleApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        //In order to enable encrypted data storage, use:
+        //EncryptionHelper.enableEncryption(true, this);
         sMPinMfa = new MPinMfaAsync(this);
         sMPinMfa.init(this, getString(R.string.mpin_cid), null, null);
     }

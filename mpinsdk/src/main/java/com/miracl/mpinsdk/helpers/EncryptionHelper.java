@@ -35,40 +35,52 @@ import javax.crypto.spec.GCMParameterSpec;
 
 public class EncryptionHelper {
 
-    private static final String STORAGE_AES_KEY = "STORAGE_AES_KEY";
+    private static final String SECURE_STORAGE_AES_KEY = "com.miracl.mpinsdk.SECURE_STORAGE_AES_KEY";
+    private static final String SHARED_PREFERENCES_ENCRYPTION_ENABLED = "com.miracl.mpinsdk.SHARED_PREFERENCES_ENCRYPTION_ENABLED";
+    private static final String SHARED_PREFERENCES_FILE_KEY = "com.miracl.mpinsdk.SHARED_PREFERENCES_FILE_KEY";
+    private static final String SHARED_PREFERENCES_IV_KEY = "com.miracl.mpinsdk.SHARED_PREFERENCES_IV_KEY";
     private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
-    private static final String SHARED_PREFERENCES_FILE_KEY = "ContextSharedPreferences";
-    private static final String SHARED_PREFERENCES_IV_KEY = "IV_KEY";
-    private static final String TAG = "EncryptionHelper";
-
+    private static final String LOG_TAG = "EncryptionHelper";
 
     private SharedPreferences.Editor sharedPreferencesEditor;
     private SharedPreferences sharedPreferences;
+    private boolean encryptionEnabled;
 
     @SuppressLint("CommitPrefEdits")
     @RequiresApi(api = Build.VERSION_CODES.M)
     public EncryptionHelper(Context context) {
         this.sharedPreferences = context.getSharedPreferences(SHARED_PREFERENCES_FILE_KEY, Context.MODE_PRIVATE);
         sharedPreferencesEditor = sharedPreferences.edit();
+        this.encryptionEnabled = sharedPreferences.getBoolean(SHARED_PREFERENCES_ENCRYPTION_ENABLED, false);
         try {
             SecretKey key = extractKeyFromKeyStore();
             if(key == null) {
                 generateSecureKey();
             }
         } catch (KeyStoreException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (IOException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (NoSuchAlgorithmException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (CertificateException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (UnrecoverableEntryException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         }
     }
 
+    public static void enableEncryption(Boolean encryptionEnabled, Context context) {
+        SharedPreferences preferences = context.getSharedPreferences(SHARED_PREFERENCES_FILE_KEY, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean(SHARED_PREFERENCES_ENCRYPTION_ENABLED, encryptionEnabled);
+        editor.commit();
+    }
+
     public CryptographicStatus getKeyAuthenticationState() {
+        if(!encryptionEnabled) {
+            return CryptographicStatus.NOT_ACTIVATED;
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             return encrypt("dummy").getStatus();
         }
@@ -95,7 +107,7 @@ public class EncryptionHelper {
             keyGenerator = KeyGenerator
                     .getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
 
-            final KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder(STORAGE_AES_KEY,
+            final KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder(SECURE_STORAGE_AES_KEY,
                     KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                     .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                     //This one is quite useful towards UX, but requires Android 7.0 at least
@@ -110,18 +122,18 @@ public class EncryptionHelper {
             new SecureRandom().nextBytes(iv);
             setIV(iv);
         } catch (NoSuchAlgorithmException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (NoSuchProviderException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (InvalidAlgorithmParameterException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         }
     }
     private SecretKey extractKeyFromKeyStore() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableEntryException {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
         final KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) keyStore
-                .getEntry(STORAGE_AES_KEY, null);
+                .getEntry(SECURE_STORAGE_AES_KEY, null);
         if(secretKeyEntry == null) {
             return null;
         }
@@ -141,7 +153,7 @@ public class EncryptionHelper {
         } catch (KeyPermanentlyInvalidatedException e) {
             return new CryptographicResult(null, CryptographicStatus.KEY_PERMANENTLY_INVALIDATED);
         } catch (Exception e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
             return new CryptographicResult(null, CryptographicStatus.ERROR);
         }
     }
@@ -156,7 +168,7 @@ public class EncryptionHelper {
                 }
                 return new String(decryptedData, "UTF-8");
             } catch (UnsupportedEncodingException e) {
-                Log.e(TAG, e.toString());
+                Log.e(LOG_TAG, e.toString());
             }
         }
         return "";
@@ -172,29 +184,29 @@ public class EncryptionHelper {
         } catch (UserNotAuthenticatedException e) {
             return new CryptographicResult(null, CryptographicStatus.USER_NOT_AUTHENTICATED);
         } catch (NoSuchAlgorithmException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (InvalidKeyException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (InvalidAlgorithmParameterException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (NoSuchPaddingException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (AEADBadTagException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (BadPaddingException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (UnsupportedEncodingException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (IllegalBlockSizeException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (CertificateException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (KeyStoreException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (UnrecoverableEntryException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (IOException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         }
         return new CryptographicResult(null, CryptographicStatus.ERROR);
     }
@@ -203,15 +215,15 @@ public class EncryptionHelper {
         try {
             KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
             keyStore.load(null);
-            keyStore.deleteEntry(STORAGE_AES_KEY);
+            keyStore.deleteEntry(SECURE_STORAGE_AES_KEY);
         } catch (IOException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (NoSuchAlgorithmException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (CertificateException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         } catch (KeyStoreException e) {
-            Log.e(TAG, e.toString());
+            Log.e(LOG_TAG, e.toString());
         }
     }
 
