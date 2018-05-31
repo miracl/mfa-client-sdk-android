@@ -4,6 +4,7 @@ import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -12,6 +13,7 @@ import android.widget.Toast;
 
 import com.miracl.mpinsdk.MPinMfaAsync;
 import com.miracl.mpinsdk.model.Status;
+import com.miracl.mpinsdksample.util.StorageAuthenticationBroadcastObserver;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -22,6 +24,12 @@ public class BaseActivity extends AppCompatActivity implements Observer {
     public static final String USER_SHOULD_AUTHENTICATE = "com.miracl.mpinsdk.intent.USER_SHOULD_AUTHENTICATE";
     public static final String CONTENT_ENCRYPTION_KEY_PERMANENTLY_INVALIDATED = "com.miracl.mpinsdk.intent.CONTENT_ENCRYPTION_KEY_PERMANENTLY_INVALIDATED";
     private int authenticationRequests;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        StorageAuthenticationBroadcastObserver.getInstance().addObserver(this);
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override

@@ -91,7 +91,7 @@ public class QrReaderActivity extends BaseActivity implements  EnterPinDialog.Ev
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        StorageAuthenticationBroadcastObserver.getInstance().addObserver(this);
+
 
         setContentView(R.layout.activity_qr_reader);
 
