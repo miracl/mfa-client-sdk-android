@@ -62,6 +62,11 @@ static jstring nGetAppId(JNIEnv *env, jobject jobj, jlong jptr) {
     return env->NewStringUTF(userPtr->get()->GetAppId().c_str());
 }
 
+static jstring nGetMPinId(JNIEnv *env, jobject jobj, jlong jptr) {
+    const MPinSDKBase::UserPtr *userPtr = (const MPinSDKBase::UserPtr *) jptr;
+    return env->NewStringUTF(userPtr->get()->GetMPinId().c_str());
+}
+
 static jboolean nCanSign(JNIEnv *env, jobject jobj, jlong jptr) {
     const MPinSDKBase::UserPtr *userPtr = (const MPinSDKBase::UserPtr *) jptr;
     return (jboolean) userPtr->get()->CanSign();
@@ -81,6 +86,7 @@ static JNINativeMethod g_methodsUser[] =
                 NATIVE_METHOD(nGetState, "(J)I"),
                 NATIVE_METHOD(nGetBackend, "(J)Ljava/lang/String;"),
                 NATIVE_METHOD(nGetCustomerId, "(J)Ljava/lang/String;"),
+                NATIVE_METHOD(nGetMPinId, "(J)Ljava/lang/String;"),
                 NATIVE_METHOD(nGetAppId, "(J)Ljava/lang/String;"),
                 NATIVE_METHOD(nCanSign, "(J)Z"),
                 NATIVE_METHOD(nGetPinLength, "(J)I")
