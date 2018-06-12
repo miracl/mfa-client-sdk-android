@@ -19,6 +19,8 @@
 package com.miracl.mpinsdk.model;
 
 
+import com.miracl.mpinsdk.util.Hex;
+
 import java.io.Closeable;
 
 
@@ -80,6 +82,11 @@ public class User implements Closeable {
     public int getPinLength() {
         return nGetPinLength(mPtr);
     }
+
+    public String getMPinId() {
+        return Hex.encode(nGetMPinId(mPtr).getBytes());
+    }
+
     @Override
     public void close() {
         synchronized (this) {
@@ -121,4 +128,6 @@ public class User implements Closeable {
     private native boolean nCanSign(long ptr);
 
     private native int nGetPinLength(long ptr);
+
+    private native String nGetMPinId(long ptr);
 }
