@@ -1,25 +1,25 @@
-# Milagro Mobile SDK for Android
+# Android Mobile SDK for MIRACL MFA Platform 
 
-## Building the Milagro Mobile SDK for Android
+## Building the MFA Mobile SDK for Android
 
 ### Prerequisites
 
 1. Download and install Android Studio or higher with Android SDK 16 or higher
-1. Download or Clone the project and its submodule to \<milagro-sdk-android\>
+1. Download or Clone the project and its submodule to \<mfa-client-sdk-android\>
 
 ### Building the Milagro Mobile SDK
 
 #### From Android Studio
-1. Import the project - File-> Open -> \<milagro-sdk-android\>
+1. Import the project - File-> Open -> \<mfa-client-sdk-android\>
 1. From Gradle Tool View select :mpinsdk -> Tasks -> build -> build
-1. The assembled aars will be located in \<milagro-sdk-android\>/mpinsdk/build/outputs/aar
+1. The assembled aars will be located in \<mfa-client-sdk-android\>/mpinsdk/build/outputs/aar
  
 #### From Command Line
-1. Navigate to \<milagro-sdk-android\>
+1. Navigate to \<mfa-client-sdk-android\>
 1. Execute ./gradlew build
-1. The assembled aars will be located in \<milagro-sdk-android\>/mpinsdk/build/outputs/aar
+1. The assembled aar's will be located in \<mfa-client-sdk-android\>/mpinsdk/build/outputs/aar
 
-For further details, see [Milagro Mobile SDK for Android Documentation](http://docs.milagro.io/en/mfa/mobile-sdk-android/milagro-mfa-mobile-sdk-developer-guide.html)
+For further details, see [MIRACL MFA Mobile SDK for Android Documentation](https://devdocs.trust.miracl.cloud/en/mobile-sdk-instructions/android)
 
 ## Android SDK API for Milagro (`com.miracl.mpinsdk.MPinSDK`)
 
