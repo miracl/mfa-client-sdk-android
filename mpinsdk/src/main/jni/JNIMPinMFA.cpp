@@ -405,10 +405,12 @@ static jobject nFinishAuthenticationOTPMultiFactor(JNIEnv* env, jobject jobj, jl
     return FinishAuthenticationOTP(env, jobj, jptr, juser, JavaStringArrayToMultiFactor(env, jMultiFactor), jotp);
 }
 
-static jboolean nVerifyDocumentHash(JNIEnv* env, jobject jobj,jlong jptr, jstring jdocument, jbyteArray jhash)
+static jboolean nVerifyDocumentHash(JNIEnv* env, jobject jobj, jlong jptr, jstring jdocument, jbyteArray jhash)
 {
-    MfaSDK* sdk = (MfaSDK*) jptr;
-    return (jboolean) sdk->VerifyDocumentHash(JavaToStdString(env, jdocument), JavaByteArrayToStdString(env, jhash));
+    return false;
+    // TODO: Fix VerifyDocumentHash ---> HashDocument
+//    MfaSDK* sdk = (MfaSDK*) jptr;
+//    return (jboolean) sdk->VerifyDocumentHash(JavaToStdString(env, jdocument), JavaByteArrayToStdString(env, jhash));
 }
 
 static jobject Sign(JNIEnv* env, jobject jobj,jlong jptr, jobject juser, jbyteArray jdocumentHash, MPinSDK::MultiFactor multiFactor, jint jepochTime, jstring authzToken, jobject jsignature)
@@ -416,7 +418,9 @@ static jobject Sign(JNIEnv* env, jobject jobj,jlong jptr, jobject juser, jbyteAr
     MfaSDK* sdk = (MfaSDK*) jptr;
 
     MfaSDK::Signature signature;
-    MfaSDK::Status status = sdk->Sign(JavaToMPinUser(env, juser), JavaByteArrayToStdString(env, jdocumentHash), multiFactor, jepochTime, JavaToStdString(env, authzToken), signature);
+    // TODO: Fix Sign
+//    MfaSDK::Status status = sdk->Sign(JavaToMPinUser(env, juser), JavaByteArrayToStdString(env, jdocumentHash), multiFactor, jepochTime, JavaToStdString(env, authzToken), signature);
+    MfaSDK::Status status = MfaSDK::Status::REVOKED;
 
     if(status == MfaSDK::Status::OK)
     {
