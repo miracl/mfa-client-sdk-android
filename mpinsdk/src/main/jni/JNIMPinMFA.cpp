@@ -411,22 +411,14 @@ static jobject nFinishAuthenticationOTPMultiFactor(JNIEnv* env, jobject jobj, jl
     return FinishAuthenticationOTP(env, jobj, jptr, juser, JavaStringArrayToMultiFactor(env, jMultiFactor), jotp);
 }
 
-static jboolean nVerifyDocumentHash(JNIEnv* env, jobject jobj, jlong jptr, jstring jdocument, jbyteArray jhash)
-{
-    return false;
-    // TODO: Fix VerifyDocumentHash ---> HashDocument
-//    MfaSDK* sdk = (MfaSDK*) jptr;
-//    return (jboolean) sdk->VerifyDocumentHash(JavaToStdString(env, jdocument), JavaByteArrayToStdString(env, jhash));
-}
 
-static jobject Sign(JNIEnv* env, jobject jobj,jlong jptr, jobject juser, jbyteArray jdocumentHash, MPinSDK::MultiFactor multiFactor, jint jepochTime, jstring authzToken, jobject jsignature)
+static jobject Sign(JNIEnv *env, jobject jobj, jlong jptr, jobject juser, jbyteArray jdocumentHash,
+                   MPinSDK::MultiFactor multiFactor, jint jepochTime, jobject jsignature)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
 
     MfaSDK::Signature signature;
-    // TODO: Fix Sign
-//    MfaSDK::Status status = sdk->Sign(JavaToMPinUser(env, juser), JavaByteArrayToStdString(env, jdocumentHash), multiFactor, jepochTime, JavaToStdString(env, authzToken), signature);
-    MfaSDK::Status status = MfaSDK::Status::REVOKED;
+    MfaSDK::Status status = sdk->Sign(JavaToMPinUser(env, juser), JavaByteArrayToStdString(env, jdocumentHash), multiFactor, jepochTime, signature);
 
     if(status == MfaSDK::Status::OK)
     {
@@ -447,14 +439,17 @@ static jobject Sign(JNIEnv* env, jobject jobj,jlong jptr, jobject juser, jbyteAr
     return MakeJavaStatus(env, status);
 }
 
-static jobject nSign(JNIEnv* env, jobject jobj,jlong jptr, jobject juser, jbyteArray jdocumentHash, jstring jfactor, jint jepochTime, jstring jauthzToken, jobject jsignature)
+static jobject nSign(JNIEnv *env, jobject jobj, jlong jptr, jobject juser, jbyteArray jdocumentHash,
+                    jstring jfactor, jint jepochTime, jobject jsignature)
 {
-    return Sign(env, jobj, jptr, juser, jdocumentHash, MPinSDK::MultiFactor(JavaToStdString(env, jfactor)), jepochTime, jauthzToken, jsignature);
+    return Sign(env, jobj, jptr, juser, jdocumentHash,
+                MPinSDK::MultiFactor(JavaToStdString(env, jfactor)), jepochTime, jsignature);
 }
 
 static jobject nSignMultiFactor(JNIEnv* env, jobject jobj,jlong jptr, jobject juser, jbyteArray jdocumentHash, jobjectArray jMultiFactor, jint jepochTime, jstring jauthzToken, jobject jsignature)
 {
-    return Sign(env, jobj, jptr, juser, jdocumentHash, JavaStringArrayToMultiFactor(env, jMultiFactor), jepochTime, jauthzToken, jsignature);
+    return Sign(env, jobj, jptr, juser, jdocumentHash,
+                JavaStringArrayToMultiFactor(env, jMultiFactor), jepochTime, jsignature);
 }
 
 static jobject nListUsers(JNIEnv* env, jobject jobj, jlong jptr, jobject jusersList)
@@ -531,9 +526,8 @@ static JNINativeMethod g_methodsMfaSDK[] =
     NATIVE_METHOD(nFinishAuthenticationOTP, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Lcom/miracl/mpinsdk/model/OTP;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishAuthenticationRegCode, "(JLcom/miracl/mpinsdk/model/User;[Ljava/lang/String;Lcom/miracl/mpinsdk/model/RegCode;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishAuthenticationOTPMultiFactor, "(JLcom/miracl/mpinsdk/model/User;[Ljava/lang/String;Lcom/miracl/mpinsdk/model/OTP;)Lcom/miracl/mpinsdk/model/Status;"),
-    NATIVE_METHOD(nVerifyDocumentHash, "(JLjava/lang/String;[B)Z"),
-    NATIVE_METHOD(nSign, "(JLcom/miracl/mpinsdk/model/User;[BLjava/lang/String;ILjava/lang/String;Lcom/miracl/mpinsdk/model/Signature;)Lcom/miracl/mpinsdk/model/Status;"),
-    NATIVE_METHOD(nSignMultiFactor, "(JLcom/miracl/mpinsdk/model/User;[B[Ljava/lang/String;ILjava/lang/String;Lcom/miracl/mpinsdk/model/Signature;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nSign, "(JLcom/miracl/mpinsdk/model/User;[BLjava/lang/String;ILcom/miracl/mpinsdk/model/Signature;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nSignMultiFactor, "(JLcom/miracl/mpinsdk/model/User;[B[Ljava/lang/String;ILcom/miracl/mpinsdk/model/Signature;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nListUsers, "(JLjava/util/List;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nSetRegistrationToken, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nIsRegistrationTokenSet, "(JLcom/miracl/mpinsdk/model/User;)Z"),
