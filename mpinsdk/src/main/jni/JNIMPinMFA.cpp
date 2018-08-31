@@ -428,12 +428,14 @@ static jobject Sign(JNIEnv *env, jobject jobj, jlong jptr, jobject juser, jbyteA
         jfieldID fidU = env->GetFieldID(clsSignature, "u", "[B");
         jfieldID fidV = env->GetFieldID(clsSignature, "v", "[B");
         jfieldID fidPublicKey = env->GetFieldID(clsSignature, "publicKey", "[B");
+        jfieldID fidDtas = env->GetFieldID(clsSignature, "dtas", "[B");
 
         env->SetObjectField(jsignature, fidHash, StdStringToJavaByteArray(env, signature.hash));
         env->SetObjectField(jsignature, fidMpinId, StdStringToJavaByteArray(env, signature.mpinId));
         env->SetObjectField(jsignature, fidU, StdStringToJavaByteArray(env, signature.u));
         env->SetObjectField(jsignature, fidV, StdStringToJavaByteArray(env, signature.v));
         env->SetObjectField(jsignature, fidPublicKey, StdStringToJavaByteArray(env, signature.publicKey));
+        env->SetObjectField(jsignature, fidDtas, StdStringToJavaByteArray(env, signature.dtas));
     }
 
     return MakeJavaStatus(env, status);
