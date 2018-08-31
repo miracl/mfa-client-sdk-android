@@ -446,7 +446,8 @@ static jobject nSign(JNIEnv *env, jobject jobj, jlong jptr, jobject juser, jbyte
                 MPinSDK::MultiFactor(JavaToStdString(env, jfactor)), jepochTime, jsignature);
 }
 
-static jobject nSignMultiFactor(JNIEnv* env, jobject jobj,jlong jptr, jobject juser, jbyteArray jdocumentHash, jobjectArray jMultiFactor, jint jepochTime, jstring jauthzToken, jobject jsignature)
+static jobject nSignMultiFactor(JNIEnv *env, jobject jobj, jlong jptr, jobject juser, jbyteArray jdocumentHash,
+                                jobjectArray jMultiFactor, jint jepochTime, jobject jsignature)
 {
     return Sign(env, jobj, jptr, juser, jdocumentHash,
                 JavaStringArrayToMultiFactor(env, jMultiFactor), jepochTime, jsignature);
