@@ -178,8 +178,8 @@ public class MPinMFA implements Closeable {
         return nFinishRegistrationMultiFactor(mPtr, user, multiFactor);
     }
 
-    public Status startRegistrationDvs(User user, String token) {
-        return nStartRegistrationDVS(mPtr, user, token);
+    public Status startRegistrationDvs(User user, String[] multiFactor) {
+        return nStartRegistrationDVS(mPtr, user, multiFactor);
     }
 
     public Status finishRegistrationDvs(User user, String[] multiFactor) {
@@ -230,20 +230,16 @@ public class MPinMFA implements Closeable {
         return nFinishAuthenticationRegCode(mPtr, user, multiFactor, regCode);
     }
 
-    public boolean verifyDocumentHash(String document, byte[] hash) {
-        return nVerifyDocumentHash(mPtr, document, hash);
-    }
-
     public boolean isRegistrationTokenSet(User user) {
         return nIsRegistrationTokenSet(mPtr, user);
     }
 
-    public Status sign(User user, byte[] documentHash, String secret, int epochTime, String authzToken, Signature signature) {
-        return nSign(mPtr, user, documentHash, secret, epochTime, authzToken, signature);
+    public Status sign(User user, byte[] documentHash, String secret, int epochTime, Signature signature) {
+        return nSign(mPtr, user, documentHash, secret, epochTime, signature);
     }
 
-    public Status sign(User user, byte[] documentHash, String[] multiFactor, int epochTime, String authzToken, Signature signature) {
-        return nSignMultiFactor(mPtr, user, documentHash, multiFactor, epochTime, authzToken, signature);
+    public Status sign(User user, byte[] documentHash, String[] multiFactor, int epochTime, Signature signature) {
+        return nSignMultiFactor(mPtr, user, documentHash, multiFactor, epochTime, signature);
     }
 
     public Status listUsers(List<User> users) {
@@ -252,6 +248,10 @@ public class MPinMFA implements Closeable {
 
     public Status setRegistrationToken(User user, String regToken) {
         return nSetRegistrationToken(mPtr, user, regToken);
+    }
+
+    public String hashDocument(String document) {
+        return nHashDocument(mPtr, document);
     }
 
     // Native methods from MPinSDKBase
@@ -314,7 +314,7 @@ public class MPinMFA implements Closeable {
 
     private native Status nFinishRegistrationMultiFactor(long ptr, User user, String[] multiFactor);
 
-    private native Status nStartRegistrationDVS(long ptr, User user, String token);
+    private native Status nStartRegistrationDVS(long ptr, User user, String[] multiFactor);
 
     private native Status nFinishRegistrationDVS(long ptr, User user, String[] multiFactor);
 
@@ -341,15 +341,15 @@ public class MPinMFA implements Closeable {
 
     private native Status nFinishAuthenticationRegCode(long mPtr, User user, String[] multiFactor, RegCode regCode);
 
-    private native boolean nVerifyDocumentHash(long ptr, String document, byte[] hash);
+    private native Status nSign(long ptr, User user, byte[] documentHash, String secret, int epochTime, Signature signature);
 
-    private native Status nSign(long ptr, User user, byte[] documentHash, String secret, int epochTime, String authzToken, Signature signature);
-
-    private native Status nSignMultiFactor(long ptr, User user, byte[] documentHash, String[] multiFactor, int epochTime, String authzToken, Signature signature);
+    private native Status nSignMultiFactor(long ptr, User user, byte[] documentHash, String[] multiFactor, int epochTime, Signature signature);
 
     private native Status nListUsers(long ptr, List<User> users);
 
     private native Status nSetRegistrationToken(long ptr, User user, String regToken);
 
     private native boolean nIsRegistrationTokenSet(long ptr, User user);
+
+    private native String nHashDocument(long ptr, String document);
 }

@@ -150,6 +150,12 @@ static jstring nGetClientParam(JNIEnv* env, jobject jobj, jlong jptr, jstring jk
     return env->NewStringUTF(result.c_str());
 }
 
+static jstring nHashDocument(JNIEnv* env, jobject jobj, jlong jptr, jstring document)
+{
+    MfaSDK* sdk = (MfaSDK*) jptr;
+    MfaSDK::String result = sdk->HashDocument(JavaToStdString(env, document));
+    return env->NewStringUTF(result.c_str());
+}
 
 // MfaSDK
 
@@ -256,10 +262,10 @@ static jobject nFinishRegistrationMultiFactor(JNIEnv* env, jobject jobj, jlong j
     return MakeJavaStatus(env, sdk->FinishRegistration(JavaToMPinUser(env, juser), JavaStringArrayToMultiFactor(env, jmultiFactor)));
 }
 
-static jobject nStartRegistrationDVS(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring jtoken)
+static jobject nStartRegistrationDVS(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jobjectArray jmultiFactor)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
-    return MakeJavaStatus(env, sdk->StartRegistrationDVS(JavaToMPinUser(env, juser), JavaToStdString(env, jtoken)));
+    return MakeJavaStatus(env, sdk->StartRegistrationDVS(JavaToMPinUser(env, juser), JavaStringArrayToMultiFactor(env, jmultiFactor)));
 }
 
 static jobject nFinishRegistrationDVS(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jobjectArray jmultiFactor)
@@ -405,18 +411,14 @@ static jobject nFinishAuthenticationOTPMultiFactor(JNIEnv* env, jobject jobj, jl
     return FinishAuthenticationOTP(env, jobj, jptr, juser, JavaStringArrayToMultiFactor(env, jMultiFactor), jotp);
 }
 
-static jboolean nVerifyDocumentHash(JNIEnv* env, jobject jobj,jlong jptr, jstring jdocument, jbyteArray jhash)
-{
-    MfaSDK* sdk = (MfaSDK*) jptr;
-    return (jboolean) sdk->VerifyDocumentHash(JavaToStdString(env, jdocument), JavaByteArrayToStdString(env, jhash));
-}
 
-static jobject Sign(JNIEnv* env, jobject jobj,jlong jptr, jobject juser, jbyteArray jdocumentHash, MPinSDK::MultiFactor multiFactor, jint jepochTime, jstring authzToken, jobject jsignature)
+static jobject Sign(JNIEnv *env, jobject jobj, jlong jptr, jobject juser, jbyteArray jdocumentHash,
+                   MPinSDK::MultiFactor multiFactor, jint jepochTime, jobject jsignature)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
 
     MfaSDK::Signature signature;
-    MfaSDK::Status status = sdk->Sign(JavaToMPinUser(env, juser), JavaByteArrayToStdString(env, jdocumentHash), multiFactor, jepochTime, JavaToStdString(env, authzToken), signature);
+    MfaSDK::Status status = sdk->Sign(JavaToMPinUser(env, juser), JavaByteArrayToStdString(env, jdocumentHash), multiFactor, jepochTime, signature);
 
     if(status == MfaSDK::Status::OK)
     {
@@ -426,25 +428,31 @@ static jobject Sign(JNIEnv* env, jobject jobj,jlong jptr, jobject juser, jbyteAr
         jfieldID fidU = env->GetFieldID(clsSignature, "u", "[B");
         jfieldID fidV = env->GetFieldID(clsSignature, "v", "[B");
         jfieldID fidPublicKey = env->GetFieldID(clsSignature, "publicKey", "[B");
+        jfieldID fidDtas = env->GetFieldID(clsSignature, "dtas", "[B");
 
         env->SetObjectField(jsignature, fidHash, StdStringToJavaByteArray(env, signature.hash));
         env->SetObjectField(jsignature, fidMpinId, StdStringToJavaByteArray(env, signature.mpinId));
         env->SetObjectField(jsignature, fidU, StdStringToJavaByteArray(env, signature.u));
         env->SetObjectField(jsignature, fidV, StdStringToJavaByteArray(env, signature.v));
         env->SetObjectField(jsignature, fidPublicKey, StdStringToJavaByteArray(env, signature.publicKey));
+        env->SetObjectField(jsignature, fidDtas, StdStringToJavaByteArray(env, signature.dtas));
     }
 
     return MakeJavaStatus(env, status);
 }
 
-static jobject nSign(JNIEnv* env, jobject jobj,jlong jptr, jobject juser, jbyteArray jdocumentHash, jstring jfactor, jint jepochTime, jstring jauthzToken, jobject jsignature)
+static jobject nSign(JNIEnv *env, jobject jobj, jlong jptr, jobject juser, jbyteArray jdocumentHash,
+                    jstring jfactor, jint jepochTime, jobject jsignature)
 {
-    return Sign(env, jobj, jptr, juser, jdocumentHash, MPinSDK::MultiFactor(JavaToStdString(env, jfactor)), jepochTime, jauthzToken, jsignature);
+    return Sign(env, jobj, jptr, juser, jdocumentHash,
+                MPinSDK::MultiFactor(JavaToStdString(env, jfactor)), jepochTime, jsignature);
 }
 
-static jobject nSignMultiFactor(JNIEnv* env, jobject jobj,jlong jptr, jobject juser, jbyteArray jdocumentHash, jobjectArray jMultiFactor, jint jepochTime, jstring jauthzToken, jobject jsignature)
+static jobject nSignMultiFactor(JNIEnv *env, jobject jobj, jlong jptr, jobject juser, jbyteArray jdocumentHash,
+                                jobjectArray jMultiFactor, jint jepochTime, jobject jsignature)
 {
-    return Sign(env, jobj, jptr, juser, jdocumentHash, JavaStringArrayToMultiFactor(env, jMultiFactor), jepochTime, jauthzToken, jsignature);
+    return Sign(env, jobj, jptr, juser, jdocumentHash,
+                JavaStringArrayToMultiFactor(env, jMultiFactor), jepochTime, jsignature);
 }
 
 static jobject nListUsers(JNIEnv* env, jobject jobj, jlong jptr, jobject jusersList)
@@ -508,7 +516,7 @@ static JNINativeMethod g_methodsMfaSDK[] =
     NATIVE_METHOD(nConfirmRegistration, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishRegistration, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishRegistrationMultiFactor, "(JLcom/miracl/mpinsdk/model/User;[Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
-    NATIVE_METHOD(nStartRegistrationDVS, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nStartRegistrationDVS, "(JLcom/miracl/mpinsdk/model/User;[Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishRegistrationDVS, "(JLcom/miracl/mpinsdk/model/User;[Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nGetAccessCode, "(JLjava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nStartAuthenticationOTP, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),
@@ -521,12 +529,12 @@ static JNINativeMethod g_methodsMfaSDK[] =
     NATIVE_METHOD(nFinishAuthenticationOTP, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Lcom/miracl/mpinsdk/model/OTP;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishAuthenticationRegCode, "(JLcom/miracl/mpinsdk/model/User;[Ljava/lang/String;Lcom/miracl/mpinsdk/model/RegCode;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishAuthenticationOTPMultiFactor, "(JLcom/miracl/mpinsdk/model/User;[Ljava/lang/String;Lcom/miracl/mpinsdk/model/OTP;)Lcom/miracl/mpinsdk/model/Status;"),
-    NATIVE_METHOD(nVerifyDocumentHash, "(JLjava/lang/String;[B)Z"),
-    NATIVE_METHOD(nSign, "(JLcom/miracl/mpinsdk/model/User;[BLjava/lang/String;ILjava/lang/String;Lcom/miracl/mpinsdk/model/Signature;)Lcom/miracl/mpinsdk/model/Status;"),
-    NATIVE_METHOD(nSignMultiFactor, "(JLcom/miracl/mpinsdk/model/User;[B[Ljava/lang/String;ILjava/lang/String;Lcom/miracl/mpinsdk/model/Signature;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nSign, "(JLcom/miracl/mpinsdk/model/User;[BLjava/lang/String;ILcom/miracl/mpinsdk/model/Signature;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nSignMultiFactor, "(JLcom/miracl/mpinsdk/model/User;[B[Ljava/lang/String;ILcom/miracl/mpinsdk/model/Signature;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nListUsers, "(JLjava/util/List;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nSetRegistrationToken, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
-    NATIVE_METHOD(nIsRegistrationTokenSet, "(JLcom/miracl/mpinsdk/model/User;)Z")
+    NATIVE_METHOD(nIsRegistrationTokenSet, "(JLcom/miracl/mpinsdk/model/User;)Z"),
+    NATIVE_METHOD(nHashDocument, "(JLjava/lang/String;)Ljava/lang/String;")
 };
 
 void RegisterMPinMFAJNI(JNIEnv* env)

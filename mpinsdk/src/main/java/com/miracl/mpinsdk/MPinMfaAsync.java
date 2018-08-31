@@ -630,20 +630,20 @@ public class MPinMfaAsync {
      *
      * @param user
      *   The User object in registered state
-     * @param token
+     * @param multiFactor
      *   The DVS registration token
      * @param callback
      *   The callback for the operation. Can be <code>null</code> and the operation will still be executed.
      * @see #finishRegistrationDvs(User, String[], Callback)
      * @see User#canSign()
      */
-    public void startRegistrationDvs(@NonNull final User user, @NonNull final String token,
+    public void startRegistrationDvs(@NonNull final User user, @NonNull final String[] multiFactor,
                                      @Nullable final Callback<Void> callback) {
         mWorkerHandler.post(new Runnable() {
 
             @Override
             public void run() {
-                Status status = mMfaSdk.startRegistrationDvs(user, token);
+                Status status = mMfaSdk.startRegistrationDvs(user, multiFactor);
                 if (callback != null) {
                     callback.onResult(status, null);
                 }
@@ -653,7 +653,7 @@ public class MPinMfaAsync {
 
     /**
      * Finish the registration process for DVS capabilities of a {@link User user}. The user should already be in
-     * {@link User.State#REGISTERED registered state} and {@link #startRegistrationDvs(User, String, Callback)} should be
+     * {@link User.State#REGISTERED registered state} and {@link #startRegistrationDvs(User, String[], Callback)} should be
      * previously called for it. Check if a user is already registered for DVS with {@link User#canSign()}.
      *
      * @param user
@@ -662,7 +662,7 @@ public class MPinMfaAsync {
      *   The array of string factors for the User's signing
      * @param callback
      *   The callback for the operation. Can be <code>null</code> and the operation will still be executed.
-     * @see #startRegistrationDvs(User, String, Callback)
+     * @see #startRegistrationDvs(User, String[], Callback)
      * @see User#canSign()
      */
     public void finishRegistrationDvs(@NonNull final User user, @NonNull final String[] multiFactor,

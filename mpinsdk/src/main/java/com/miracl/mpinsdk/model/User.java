@@ -84,7 +84,7 @@ public class User implements Closeable {
     }
 
     public String getMPinId() {
-        return Hex.encode(nGetMPinId(mPtr).getBytes());
+        return nGetMPinId(mPtr);
     }
 
     @Override

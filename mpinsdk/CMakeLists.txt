@@ -20,23 +20,36 @@ add_library(AndroidMpinSDK SHARED
     ${CORE_DIR}/ext/cvshared/cpp/CvXcode.cpp
     ${CORE_CRYPTO_DIR}/src/aes.c
     ${CORE_CRYPTO_DIR}/src/amcl++.cpp
+    ${CORE_CRYPTO_DIR}/src/amcl++_curve_BLS383.cpp
+    ${CORE_CRYPTO_DIR}/src/amcl++_curve_BN254CX.cpp
     ${CORE_CRYPTO_DIR}/src/big_256_28.c
+    ${CORE_CRYPTO_DIR}/src/big_384_29.c
     ${CORE_CRYPTO_DIR}/src/ecp2_BN254CX.c
     ${CORE_CRYPTO_DIR}/src/ecp_BN254CX.c
     ${CORE_CRYPTO_DIR}/src/fp12_BN254CX.c
     ${CORE_CRYPTO_DIR}/src/fp2_BN254CX.c
     ${CORE_CRYPTO_DIR}/src/fp4_BN254CX.c
     ${CORE_CRYPTO_DIR}/src/fp_BN254CX.c
+    ${CORE_CRYPTO_DIR}/src/ecp2_BLS383.c
+    ${CORE_CRYPTO_DIR}/src/ecp_BLS383.c
+    ${CORE_CRYPTO_DIR}/src/fp12_BLS383.c
+    ${CORE_CRYPTO_DIR}/src/fp2_BLS383.c
+    ${CORE_CRYPTO_DIR}/src/fp4_BLS383.c
+    ${CORE_CRYPTO_DIR}/src/fp_BLS383.c
     ${CORE_CRYPTO_DIR}/src/gcm.c
     ${CORE_CRYPTO_DIR}/src/hash.c
     ${CORE_CRYPTO_DIR}/src/mpin_BN254CX.c
+    ${CORE_CRYPTO_DIR}/src/mpin_BLS383.c
     ${CORE_CRYPTO_DIR}/src/oct.c
     ${CORE_CRYPTO_DIR}/src/pair_BN254CX.c
+    ${CORE_CRYPTO_DIR}/src/pair_BLS383.c
     ${CORE_CRYPTO_DIR}/src/pbc_support.c
     ${CORE_CRYPTO_DIR}/src/rand.c
     ${CORE_CRYPTO_DIR}/src/randapi.c
     ${CORE_CRYPTO_DIR}/src/rom_curve_BN254CX.c
     ${CORE_CRYPTO_DIR}/src/rom_field_BN254CX.c
+    ${CORE_CRYPTO_DIR}/src/rom_curve_BLS383.c
+    ${CORE_CRYPTO_DIR}/src/rom_field_BLS383.c
     ${CORE_DIR}/src/mfa_sdk.cpp
     ${CORE_DIR}/src/mpin_sdk.cpp
     ${CORE_DIR}/src/mpin_sdk_base.cpp

@@ -7,4 +7,5 @@ public class Signature {
     public byte[] u;
     public byte[] v;
     public byte[] publicKey;
+    public byte[] dtas;
 }
