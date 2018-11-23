@@ -19,7 +19,7 @@
 1. Execute ./gradlew build
 1. The assembled aar's will be located in \<mfa-client-sdk-android\>/mpinsdk/build/outputs/aar
 
-For further details, see [MIRACL MFA Mobile SDK for Android Documentation](https://devdocs.trust.miracl.cloud/en/mobile-sdk-instructions/android)
+For further details, see [MIRACL MFA Mobile SDK for Android Documentation](https://devdocs.trust.miracl.cloud/#/mobile-sdk-instructions/)
 
 ## Android SDK API for Milagro (`com.miracl.mpinsdk.MPinSDK`)
 
@@ -620,4 +620,4 @@ The returned `Status` could be one of:
 * `FLOW_ERROR` - The provided `user` doesn't have the ability to sign documents.
 * `CRYPTO_ERROR` - an error has occurred at the crypto layer of the SDK. Call the status's `getErrorMessage()` method for more info.
 
-For more information you can refer to the [SDK Core](https://github.com/apache/incubator-milagro-mfa-sdk-core)
+For more information you can refer to the [SDK Core](https://github.com/miracl/mfa-client-sdk-core)
