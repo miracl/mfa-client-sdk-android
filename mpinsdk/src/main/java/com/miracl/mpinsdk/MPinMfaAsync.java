@@ -446,11 +446,38 @@ public class MPinMfaAsync {
      */
     public void startRegistration(@NonNull final String accessCode, final @NonNull User user,
                                   @Nullable final Callback<Void> callback) {
+        startRegistration(accessCode, user, null, callback);
+    }
+
+    /**
+     * Start the registration process for a previously created {@link User}. For the registration process to be completed a
+     * user's registration needs to be confirmed and then finished.
+     *
+     * @param accessCode
+     *   A valid access code
+     * @param user
+     *   A {@link User} object in non-registered state
+     * @param regCode
+     *   A valid registration code used for identity verification
+     * @param callback
+     *   The callback for the operation. Can be <code>null</code> and the operation will still be executed.
+     * @see #confirmRegistration(User, Callback)
+     * @see #finishRegistration(User, String[], Callback)
+     */
+    public void startRegistration(@NonNull final String accessCode, final @NonNull User user,
+                                  @Nullable final String regCode, @Nullable final Callback<Void> callback) {
         mWorkerHandler.post(new Runnable() {
 
             @Override
             public void run() {
-                Status status = mMfaSdk.startRegistration(user, accessCode);
+                final Status status;
+
+                if (regCode != null) {
+                    status = mMfaSdk.startRegistration(user, accessCode, regCode);
+                } else {
+                    status = mMfaSdk.startRegistration(user, accessCode);
+                }
+
                 if (status.getStatusCode() == Status.Code.OK) {
                     mMfaInfoCache.putExpiration(user);
                 }
@@ -478,29 +505,50 @@ public class MPinMfaAsync {
      */
     public void startRegistration(@NonNull final String accessCode, @NonNull final String userId,
                                   @Nullable final String deviceName, @NonNull final Callback<User> callback) {
+        startRegistration(accessCode, userId, deviceName, null, callback);
+    }
+
+    /**
+     * Start the registration process for a new user, that will be created with the specified user ID and device name. For the
+     * registration process to be completed a user's registration needs to be confirmed and then finished.
+     *
+     * @param accessCode
+     *   A valid access code
+     * @param userId
+     *   The user ID for the user that will be created
+     * @param deviceName
+     *   Optional device name for the user that will be created
+     * @param regCode
+     *   A valid registration code used for identity verification
+     * @param callback
+     *   Callback with the newly created user
+     * @see #confirmRegistration(User, Callback)
+     * @see #finishRegistration(User, String[], Callback)
+     */
+    public void startRegistration(@NonNull final String accessCode, @NonNull final String userId,
+                                  @Nullable final String deviceName, @Nullable final String regCode,
+                                  @NonNull final Callback<User> callback) {
         mWorkerHandler.post(new Runnable() {
 
-                                @Override
-                                public void run() {
+            @Override
+            public void run() {
+                final User user;
 
-                                    final User user;
-                                    if (!TextUtils.isEmpty(deviceName)) {
-                                        user = mMfaSdk.makeNewUser(userId, deviceName);
-                                    } else {
-                                        user = mMfaSdk.makeNewUser(userId);
-                                    }
+                if (!TextUtils.isEmpty(deviceName)) {
+                    user = mMfaSdk.makeNewUser(userId, deviceName);
+                } else {
+                    user = mMfaSdk.makeNewUser(userId);
+                }
 
-                                    startRegistration(accessCode, user, new Callback<Void>() {
+                startRegistration(accessCode, user, regCode, new Callback<Void>() {
 
-                                        @Override
-                                        protected void onResult(Status status, Void result) {
-                                            callback.onResult(status, user);
-                                        }
-                                    });
-                                }
-                            }
-
-        );
+                    @Override
+                    protected void onResult(Status status, Void result) {
+                        callback.onResult(status, user);
+                    }
+                });
+            }
+        });
     }
 
     /**
