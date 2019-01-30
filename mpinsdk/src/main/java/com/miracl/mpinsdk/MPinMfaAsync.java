@@ -409,6 +409,29 @@ public class MPinMfaAsync {
     }
 
     /**
+     * Fetch an access code without scanning QR code
+     *
+     * @param authUrl
+     *   A valid platform authorize URL
+     * @param callback
+     *   The callback for the operation. Can be <code>null</code> and the operation will still be executed.
+     */
+    public void getAccessCode(@NonNull final String authUrl, @Nullable final Callback<String> callback) {
+        mWorkerHandler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                StringBuilder code = new StringBuilder();
+                Status status = mMfaSdk.getAccessCode(authUrl, code);
+
+                if (callback != null) {
+                    callback.onResult(status, code.toString());
+                }
+            }
+        });
+    }
+
+    /**
      * Start the registration process for a previously created {@link User}. For the registration process to be completed a
      * user's registration needs to be confirmed and then finished.
      *
