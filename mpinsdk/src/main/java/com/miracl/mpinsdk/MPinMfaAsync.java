@@ -446,7 +446,7 @@ public class MPinMfaAsync {
      */
     public void startRegistration(@NonNull final String accessCode, final @NonNull User user,
                                   @Nullable final Callback<Void> callback) {
-        startRegistration(accessCode, user, null, callback);
+        startRegistration(accessCode, user, null, null, callback);
     }
 
     /**
@@ -457,6 +457,28 @@ public class MPinMfaAsync {
      *   A valid access code
      * @param user
      *   A {@link User} object in non-registered state
+     * @param pushToken
+     *   The unique token for sending push notifications on the device
+     * @param callback
+     *   The callback for the operation. Can be <code>null</code> and the operation will still be executed.
+     * @see #confirmRegistration(User, Callback)
+     * @see #finishRegistration(User, String[], Callback)
+     */
+    public void startRegistration(@NonNull final String accessCode, final @NonNull User user,
+                                  @Nullable final String pushToken, @Nullable final Callback<Void> callback) {
+        startRegistration(accessCode, user, pushToken, null, callback);
+    }
+
+    /**
+     * Start the registration process for a previously created {@link User}. For the registration process to be completed a
+     * user's registration needs to be confirmed and then finished.
+     *
+     * @param accessCode
+     *   A valid access code
+     * @param user
+     *   A {@link User} object in non-registered state
+     * @param pushToken
+     *   The unique token for sending push notifications on the device
      * @param regCode
      *   A valid registration code used for identity verification
      * @param callback
@@ -465,17 +487,22 @@ public class MPinMfaAsync {
      * @see #finishRegistration(User, String[], Callback)
      */
     public void startRegistration(@NonNull final String accessCode, final @NonNull User user,
-                                  @Nullable final String regCode, @Nullable final Callback<Void> callback) {
+                                  @Nullable final String pushToken, @Nullable final String regCode,
+                                  @Nullable final Callback<Void> callback) {
         mWorkerHandler.post(new Runnable() {
 
             @Override
             public void run() {
-                final Status status;
+                String pToken = pushToken;
+                if (pToken == null) {
+                    pToken = "";
+                }
 
+                final Status status;
                 if (regCode != null) {
-                    status = mMfaSdk.startRegistration(user, accessCode, regCode);
+                    status = mMfaSdk.startRegistration(user, accessCode, pToken, regCode);
                 } else {
-                    status = mMfaSdk.startRegistration(user, accessCode);
+                    status = mMfaSdk.startRegistration(user, accessCode, pToken);
                 }
 
                 if (status.getStatusCode() == Status.Code.OK) {
@@ -505,7 +532,7 @@ public class MPinMfaAsync {
      */
     public void startRegistration(@NonNull final String accessCode, @NonNull final String userId,
                                   @Nullable final String deviceName, @NonNull final Callback<User> callback) {
-        startRegistration(accessCode, userId, deviceName, null, callback);
+        startRegistration(accessCode, userId, deviceName, null, null, callback);
     }
 
     /**
@@ -518,6 +545,31 @@ public class MPinMfaAsync {
      *   The user ID for the user that will be created
      * @param deviceName
      *   Optional device name for the user that will be created
+     * @param pushToken
+     *   The unique token for sending push notifications on the device
+     * @param callback
+     *   Callback with the newly created user
+     * @see #confirmRegistration(User, Callback)
+     * @see #finishRegistration(User, String[], Callback)
+     */
+    public void startRegistration(@NonNull final String accessCode, @NonNull final String userId,
+                                  @Nullable final String deviceName, @Nullable final String pushToken,
+                                  @NonNull final Callback<User> callback) {
+        startRegistration(accessCode, userId, deviceName, pushToken, null, callback);
+    }
+
+    /**
+     * Start the registration process for a new user, that will be created with the specified user ID and device name. For the
+     * registration process to be completed a user's registration needs to be confirmed and then finished.
+     *
+     * @param accessCode
+     *   A valid access code
+     * @param userId
+     *   The user ID for the user that will be created
+     * @param deviceName
+     *   Optional device name for the user that will be created
+     * @param pushToken
+     *   The unique token for sending push notifications on the device
      * @param regCode
      *   A valid registration code used for identity verification
      * @param callback
@@ -526,8 +578,8 @@ public class MPinMfaAsync {
      * @see #finishRegistration(User, String[], Callback)
      */
     public void startRegistration(@NonNull final String accessCode, @NonNull final String userId,
-                                  @Nullable final String deviceName, @Nullable final String regCode,
-                                  @NonNull final Callback<User> callback) {
+                                  @Nullable final String deviceName, @Nullable final String pushToken,
+                                  @Nullable final String regCode, @NonNull final Callback<User> callback) {
         mWorkerHandler.post(new Runnable() {
 
             @Override
@@ -540,7 +592,7 @@ public class MPinMfaAsync {
                     user = mMfaSdk.makeNewUser(userId);
                 }
 
-                startRegistration(accessCode, user, regCode, new Callback<Void>() {
+                startRegistration(accessCode, user, pushToken, regCode, new Callback<Void>() {
 
                     @Override
                     protected void onResult(Status status, Void result) {
