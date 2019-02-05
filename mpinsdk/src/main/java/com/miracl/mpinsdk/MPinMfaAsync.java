@@ -29,6 +29,7 @@ import android.text.TextUtils;
 
 import com.miracl.mpinsdk.model.Expiration;
 import com.miracl.mpinsdk.model.OTP;
+import com.miracl.mpinsdk.model.RegCode;
 import com.miracl.mpinsdk.model.ServiceDetails;
 import com.miracl.mpinsdk.model.SessionDetails;
 import com.miracl.mpinsdk.model.Status;
@@ -983,6 +984,51 @@ public class MPinMfaAsync {
                     mMfaInfoCache.putLastOtpUser(user);
                 }
                 callback.onResult(status, otp);
+            }
+        });
+    }
+
+    /**
+     * Start an authentication process for a user to receive a registration code.
+     *
+     * @param user
+     *   The user which will be authenticated
+     * @param callback
+     *   Callback for the operation
+     * @see #finishAuthenticationRegCode(User, String[], Callback)
+     */
+    public void startAuthenticationRegCode(@NonNull final User user, @NonNull final Callback<Void> callback) {
+        mWorkerHandler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                Status status = mMfaSdk.startAuthenticationRegCode(user);
+                callback.onResult(status, null);
+            }
+        });
+    }
+
+    /**
+     * Finish the registration code authentication process for a user that has started a regCode authentication. Should be called after
+     * {@link #startAuthenticationRegCode(User, Callback)}. Registration code is obtained once the authentication is successful.
+     *
+     * @param user
+     *   The user for which a registration code authentication is started
+     * @param factors
+     *   An array of strings that form the user's authentication
+     * @param callback
+     *   Callback with the generated registration code
+     * @see #startAuthenticationRegCode(User, Callback)
+     */
+    public void finishAuthenticationRegCode(@NonNull final User user, @NonNull final String[] factors,
+                                        @NonNull final Callback<RegCode> callback) {
+        mWorkerHandler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                RegCode regCode = new RegCode();
+                Status status = mMfaSdk.finishAuthenticationRegCode(user, factors, regCode);
+                callback.onResult(status, regCode);
             }
         });
     }
