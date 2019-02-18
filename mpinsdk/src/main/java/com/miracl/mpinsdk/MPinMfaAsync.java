@@ -33,6 +33,7 @@ import com.miracl.mpinsdk.model.RegCode;
 import com.miracl.mpinsdk.model.ServiceDetails;
 import com.miracl.mpinsdk.model.SessionDetails;
 import com.miracl.mpinsdk.model.Status;
+import com.miracl.mpinsdk.model.Signature;
 import com.miracl.mpinsdk.model.User;
 
 import java.util.ArrayList;
@@ -799,6 +800,60 @@ public class MPinMfaAsync {
                 if (callback != null) {
                     callback.onResult(status, null);
                 }
+            }
+        });
+    }
+
+    /**
+     * Sign a document using an identity that has DVS capabilities.
+     * Check if a user is already registered for DVS with {@link User#canSign()}.
+     *
+     * @param user
+     *   The User object in registered state
+     * @param documentHash
+     *   The hash of the document for signing
+     * @param multiFactor
+     *   The array of string factors for the User's signing
+     * @param timestamp
+     *   Timestamp of when the document was created
+     * @param callback
+     *   The callback for the operation
+     * @see User#canSign()
+     */
+    public void sign(@NonNull final User user, @NonNull final byte[] documentHash, @NonNull final String[] multiFactor,
+                     final int timestamp, @NonNull final Callback<Signature> callback) {
+        mWorkerHandler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                Signature signature = new Signature();
+
+                try {
+                    callback.onResult(mMfaSdk.sign(user, documentHash, multiFactor, timestamp, signature), signature);
+                } catch (Exception e) {
+                    callback.onResult(new Status(Status.Code.RESPONSE_PARSE_ERROR, e.getMessage()), signature);
+                }
+            }
+        });
+    }
+
+    /**
+     * Check if the provided document hash properly corresponds to the document
+     *
+     * @param document
+     *   The document for signing
+     * @param documentHash
+     *   The hash of the document for signing
+     * @param callback
+     *   The callback for the operation
+     */
+    public void verifyDocumentHash(@NonNull final String document, @NonNull final String documentHash,
+                                   final @NonNull Callback<Boolean> callback) {
+        mWorkerHandler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                callback.onResult(new Status(Status.Code.OK, ""), documentHash.equals(mMfaSdk.hashDocument(document)));
             }
         });
     }
