@@ -150,11 +150,11 @@ static jstring nGetClientParam(JNIEnv* env, jobject jobj, jlong jptr, jstring jk
     return env->NewStringUTF(result.c_str());
 }
 
-static jstring nHashDocument(JNIEnv* env, jobject jobj, jlong jptr, jstring document)
+static jbyteArray nHashDocument(JNIEnv* env, jobject jobj, jlong jptr, jbyteArray document)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
-    MfaSDK::String result = sdk->HashDocument(JavaToStdString(env, document));
-    return env->NewStringUTF(result.c_str());
+    MfaSDK::String result = sdk->HashDocument(JavaByteArrayToStdString(env, document));
+    return StdStringToJavaByteArray(env, result);
 }
 
 // MfaSDK
@@ -534,7 +534,7 @@ static JNINativeMethod g_methodsMfaSDK[] =
     NATIVE_METHOD(nListUsers, "(JLjava/util/List;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nSetRegistrationToken, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nIsRegistrationTokenSet, "(JLcom/miracl/mpinsdk/model/User;)Z"),
-    NATIVE_METHOD(nHashDocument, "(JLjava/lang/String;)Ljava/lang/String;")
+    NATIVE_METHOD(nHashDocument, "(J[B)[B")
 };
 
 void RegisterMPinMFAJNI(JNIEnv* env)

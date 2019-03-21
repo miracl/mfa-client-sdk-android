@@ -35,6 +35,7 @@ import com.miracl.mpinsdk.model.SessionDetails;
 import com.miracl.mpinsdk.model.Status;
 import com.miracl.mpinsdk.model.Signature;
 import com.miracl.mpinsdk.model.User;
+import com.miracl.mpinsdk.util.Hex;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -847,13 +848,15 @@ public class MPinMfaAsync {
      * @param callback
      *   The callback for the operation
      */
-    public void verifyDocumentHash(@NonNull final String document, @NonNull final String documentHash,
+    public void verifyDocumentHash(@NonNull final byte[] document, @NonNull final byte[] documentHash,
                                    final @NonNull Callback<Boolean> callback) {
-        mWorkerHandler.post(new Runnable() {
+        final String documentHashString = new String(documentHash).toLowerCase();
+        final String hashedDocument = new String(mMfaSdk.hashDocument(document));
 
+        mWorkerHandler.post(new Runnable() {
             @Override
             public void run() {
-                callback.onResult(new Status(Status.Code.OK, ""), documentHash.equals(mMfaSdk.hashDocument(document)));
+                callback.onResult(new Status(Status.Code.OK, ""), documentHashString.equals(hashedDocument));
             }
         });
     }

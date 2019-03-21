@@ -250,7 +250,7 @@ public class MPinMFA implements Closeable {
         return nSetRegistrationToken(mPtr, user, regToken);
     }
 
-    public String hashDocument(String document) {
+    public byte[] hashDocument(byte[] document) {
         return nHashDocument(mPtr, document);
     }
 
@@ -351,5 +351,5 @@ public class MPinMFA implements Closeable {
 
     private native boolean nIsRegistrationTokenSet(long ptr, User user);
 
-    private native String nHashDocument(long ptr, String document);
+    private native byte[] nHashDocument(long ptr, byte[] document);
 }
