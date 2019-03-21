@@ -851,7 +851,7 @@ public class MPinMfaAsync {
     public void verifyDocumentHash(@NonNull final byte[] document, @NonNull final byte[] documentHash,
                                    final @NonNull Callback<Boolean> callback) {
         final String documentHashString = new String(documentHash).toLowerCase();
-        final String hashedDocument = new String(mMfaSdk.hashDocument(document));
+        final String hashedDocument = Hex.encode(mMfaSdk.hashDocument(document));
 
         mWorkerHandler.post(new Runnable() {
             @Override
