@@ -4,57 +4,21 @@
 cmake_minimum_required(VERSION 3.4.1)
 
 set(JNI_DIR ${CMAKE_SOURCE_DIR}/src/main/jni)
-set(CORE_DIR ${CMAKE_SOURCE_DIR}/../mpin-sdk-core)
-set(CORE_CRYPTO_DIR ${CMAKE_SOURCE_DIR}/../mpin-sdk-core/ext/milagro-crypto-c)
+set(MPIN_SDK_CORE ${JNI_DIR}/mpin-sdk-core)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
 include_directories(
-    ${CORE_CRYPTO_DIR}/include
-    ${CORE_DIR}/src
-    ${CORE_DIR}/ext/cvshared/cpp/include
+    ${MPIN_SDK_CORE}/include
+    ${MPIN_SDK_CORE}/include/ext/cvshared/cpp/include
+    ${MPIN_SDK_CORE}/include/ext/milagro-crypto-c/include
 )
 
+add_library(MPinSDKCore STATIC IMPORTED)
+set_target_properties(MPinSDKCore PROPERTIES IMPORTED_LOCATION
+        ${MPIN_SDK_CORE}/lib/${ANDROID_ABI}/libMpinSDKCore.a)
+
 add_library(AndroidMpinSDK SHARED
-    ${CORE_DIR}/ext/cvshared/cpp/CvString.cpp
-    ${CORE_DIR}/ext/cvshared/cpp/CvXcode.cpp
-    ${CORE_CRYPTO_DIR}/src/aes.c
-    ${CORE_CRYPTO_DIR}/src/amcl++.cpp
-    ${CORE_CRYPTO_DIR}/src/amcl++_curve_BLS383.cpp
-    ${CORE_CRYPTO_DIR}/src/amcl++_curve_BN254CX.cpp
-    ${CORE_CRYPTO_DIR}/src/big_256_28.c
-    ${CORE_CRYPTO_DIR}/src/big_384_29.c
-    ${CORE_CRYPTO_DIR}/src/ecp2_BN254CX.c
-    ${CORE_CRYPTO_DIR}/src/ecp_BN254CX.c
-    ${CORE_CRYPTO_DIR}/src/fp12_BN254CX.c
-    ${CORE_CRYPTO_DIR}/src/fp2_BN254CX.c
-    ${CORE_CRYPTO_DIR}/src/fp4_BN254CX.c
-    ${CORE_CRYPTO_DIR}/src/fp_BN254CX.c
-    ${CORE_CRYPTO_DIR}/src/ecp2_BLS383.c
-    ${CORE_CRYPTO_DIR}/src/ecp_BLS383.c
-    ${CORE_CRYPTO_DIR}/src/fp12_BLS383.c
-    ${CORE_CRYPTO_DIR}/src/fp2_BLS383.c
-    ${CORE_CRYPTO_DIR}/src/fp4_BLS383.c
-    ${CORE_CRYPTO_DIR}/src/fp_BLS383.c
-    ${CORE_CRYPTO_DIR}/src/gcm.c
-    ${CORE_CRYPTO_DIR}/src/hash.c
-    ${CORE_CRYPTO_DIR}/src/mpin_BN254CX.c
-    ${CORE_CRYPTO_DIR}/src/mpin_BLS383.c
-    ${CORE_CRYPTO_DIR}/src/oct.c
-    ${CORE_CRYPTO_DIR}/src/pair_BN254CX.c
-    ${CORE_CRYPTO_DIR}/src/pair_BLS383.c
-    ${CORE_CRYPTO_DIR}/src/pbc_support.c
-    ${CORE_CRYPTO_DIR}/src/rand.c
-    ${CORE_CRYPTO_DIR}/src/randapi.c
-    ${CORE_CRYPTO_DIR}/src/rom_curve_BN254CX.c
-    ${CORE_CRYPTO_DIR}/src/rom_field_BN254CX.c
-    ${CORE_CRYPTO_DIR}/src/rom_curve_BLS383.c
-    ${CORE_CRYPTO_DIR}/src/rom_field_BLS383.c
-    ${CORE_DIR}/src/mfa_sdk.cpp
-    ${CORE_DIR}/src/mpin_sdk.cpp
-    ${CORE_DIR}/src/mpin_sdk_base.cpp
-    ${CORE_DIR}/src/utils.cpp
-    ${CORE_DIR}/src/mpin_crypto_non_tee.cpp
     ${JNI_DIR}/JNICommon.cpp
     ${JNI_DIR}/JNIMPinSDK.cpp
     ${JNI_DIR}/JNIMPinMFA.cpp
@@ -64,4 +28,8 @@ add_library(AndroidMpinSDK SHARED
     ${JNI_DIR}/Context.cpp
 )
 
-target_link_libraries(AndroidMpinSDK log)
+target_link_libraries(
+    AndroidMpinSDK
+    MPinSDKCore
+    log
+)
