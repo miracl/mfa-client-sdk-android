@@ -1,3 +1,0 @@
-[submodule "mpin-sdk-core"]
-	path = mpin-sdk-core
-	url = https://github.com/miracl/mfa-client-sdk-core.git
