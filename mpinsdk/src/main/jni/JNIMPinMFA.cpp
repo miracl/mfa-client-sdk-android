@@ -86,12 +86,6 @@ static jobject nTestBackend(JNIEnv* env, jobject jobj, jlong jptr, jstring jserv
     return MakeJavaStatus(env, sdk->TestBackend(JavaToStdString(env, jserver)));
 }
 
-static jobject nTestBackendRPS(JNIEnv* env, jobject jobj, jlong jptr, jstring jserver, jstring jrpsPrefix)
-{
-    MfaSDK* sdk = (MfaSDK*) jptr;
-    return MakeJavaStatus(env, sdk->TestBackend(JavaToStdString(env, jserver), JavaToStdString(env, jrpsPrefix)));
-}
-
 static jboolean nIsUserExisting(JNIEnv* env, jobject jobj, jlong jptr, jstring jid, jstring jcustomerId, jstring jappId)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
@@ -102,12 +96,6 @@ static jobject nSetBackend(JNIEnv* env, jobject jobj, jlong jptr, jstring jserve
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
     return MakeJavaStatus(env, sdk->SetBackend(JavaToStdString(env, jserver)));
-}
-
-static jobject nSetBackendRPS(JNIEnv* env, jobject jobj, jlong jptr, jstring jserver, jstring jrpsPrefix)
-{
-    MfaSDK* sdk = (MfaSDK*) jptr;
-    return MakeJavaStatus(env, sdk->SetBackend(JavaToStdString(env, jserver), JavaToStdString(env, jrpsPrefix)));
 }
 
 static jobject nMakeNewUser(JNIEnv* env, jobject jobj, jlong jptr, jstring jid, jstring jdeviceName)
@@ -171,12 +159,10 @@ static jobject nGetServiceDetails(JNIEnv* env, jobject jobj, jlong jptr, jstring
         jclass clsServiceDetails = env->FindClass("com/miracl/mpinsdk/model/ServiceDetails");
         jfieldID fIdName = env->GetFieldID(clsServiceDetails, "name", "Ljava/lang/String;");
         jfieldID fIdBackendUrl = env->GetFieldID(clsServiceDetails, "backendUrl", "Ljava/lang/String;");
-        jfieldID fIdRpsPrefix = env->GetFieldID(clsServiceDetails, "rpsPrefix", "Ljava/lang/String;");
         jfieldID fIdLogoUrl = env->GetFieldID(clsServiceDetails, "logoUrl", "Ljava/lang/String;");
 
         env->SetObjectField(jserviceDetails, fIdName, env->NewStringUTF(serviceDetails.name.c_str()));
         env->SetObjectField(jserviceDetails, fIdBackendUrl, env->NewStringUTF(serviceDetails.backendUrl.c_str()));
-        env->SetObjectField(jserviceDetails, fIdRpsPrefix, env->NewStringUTF(serviceDetails.rpsPrefix.c_str()));
         env->SetObjectField(jserviceDetails, fIdLogoUrl, env->NewStringUTF(serviceDetails.logoUrl.c_str()));
     }
 
@@ -496,10 +482,8 @@ static JNINativeMethod g_methodsMfaSDK[] =
     NATIVE_METHOD(nAddTrustedDomain, "(JLjava/lang/String;)V"),
     NATIVE_METHOD(nClearTrustedDomains, "(J)V"),
     NATIVE_METHOD(nTestBackend, "(JLjava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
-    NATIVE_METHOD(nTestBackendRPS, "(JLjava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nIsUserExisting, "(JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z"),
     NATIVE_METHOD(nSetBackend, "(JLjava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
-    NATIVE_METHOD(nSetBackendRPS, "(JLjava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nMakeNewUser, "(JLjava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/User;"),
     NATIVE_METHOD(nDeleteUser, "(JLcom/miracl/mpinsdk/model/User;)V"),
     NATIVE_METHOD(nClearUsers, "(J)V"),

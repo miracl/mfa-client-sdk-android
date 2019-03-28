@@ -340,12 +340,7 @@ public class MPinMfaAsync {
 
             @Override
             public void run() {
-                Status status;
-                if (serviceDetails.rpsPrefix == null) {
-                    status = mMfaSdk.setBackend(serviceDetails.backendUrl);
-                } else {
-                    status = mMfaSdk.setBackend(serviceDetails.backendUrl, serviceDetails.rpsPrefix);
-                }
+                Status status = mMfaSdk.setBackend(serviceDetails.backendUrl);
 
                 if (callback != null) {
                     callback.onResult(status, null);
