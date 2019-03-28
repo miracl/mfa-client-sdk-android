@@ -24,7 +24,5 @@ public class ServiceDetails {
 
     public String backendUrl;
 
-    public String rpsPrefix;
-
     public String logoUrl;
 }
