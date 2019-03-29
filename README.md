@@ -336,11 +336,9 @@ The customers can see those IDs through the _Platform Portal_.
 When customers use the SDK to build their own applications to authenticate users using the Platform, the _Client ID_ has to be provided using this method. 
 
 ##### `Status testBackend(String server)`
-##### `Status testBackend(String server, String rpsPrefix)`
 Identical and analogical to `MPinSDK`'s [`testBackend()`](#status-testbackendstring-server)
 
 ##### `Status setBackend(String server)`
-##### `Status setBackend(String server, String rpsPrefix)`
 Identical and analogical to `MPinSDK`'s [`setBackend()`](#status-setbackendstring-server)
 
 ##### `User makeNewUser(String id)`
@@ -373,13 +371,11 @@ The returned `ServiceDetails` look as follows:
 public class ServiceDetails {
     public String name;
     public String backendUrl;
-    public String rpsPrefix;
     public String logoUrl;
 }
  ```
 * `name` is the service readable name
 * `backendUrl` is the URL of the service backend. This URL has to be set either via the SDK `init()` method or using  `SetBackend()`
-* `rpsPrefix` is RPS prefix setting which is also provided together with `backendUrl` while setting a backend
 * `logoUrl` is the URL of the service logo. The logo is a UI element that could be used by the app.
 
 ##### `Status getSessionDetails(String accessCode, SessionDetails sessionDetails)`
