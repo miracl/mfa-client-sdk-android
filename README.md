@@ -560,7 +560,7 @@ Before calling it the application has to get from the end-user the authenticatio
 
 The method receives an array of authentication factors, `multiFactor`, and if only a single secret needs to be passed, then `multiFactor` should be an array of a single item.
 
-##### `boolean verifyDocumentHash(String document, byte[] hash)`
+##### `boolean verifyDocumentHash(byte[] document, byte[] documentHash)`
 This method relates to the _DVS (Designated Verifier Signature)_ functionality of the MFA Platform.
 
 It verifies that the `hash` value is correct for the given `document`.
