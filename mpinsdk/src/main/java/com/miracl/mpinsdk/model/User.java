@@ -58,6 +58,21 @@ public class User implements Closeable {
         }
     }
 
+    public VerificationType getVerificationType() {
+        switch (nGetVerificationType(mPtr)) {
+            case "em":
+                return VerificationType.EMAIL;
+            case "rc":
+                return VerificationType.REG_CODE;
+            case "dvs":
+                return VerificationType.DVS;
+            case "pv":
+                return VerificationType.PLUGGABLE;
+            default:
+                return VerificationType.NONE;
+        }
+    }
+
     public String getBackend() {
         return nGetBackend(mPtr);
     }
@@ -118,6 +133,8 @@ public class User implements Closeable {
     private native void nGetRegistrationExpiration(long ptr, Expiration expiration);
 
     private native int nGetState(long ptr);
+
+    private native String nGetVerificationType(long ptr);
 
     private native String nGetBackend(long ptr);
 
