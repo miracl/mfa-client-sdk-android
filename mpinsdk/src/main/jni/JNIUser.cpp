@@ -47,6 +47,11 @@ static jint nGetState(JNIEnv *env, jobject jobj, jlong jptr) {
     return userPtr->get()->GetState();
 }
 
+static jstring nGetVerificationType(JNIEnv *env, jobject jobj, jlong jptr) {
+    const MPinSDKBase::UserPtr *userPtr = (const MPinSDKBase::UserPtr *) jptr;
+    return env->NewStringUTF(userPtr->get()->GetVerificationType().c_str());
+}
+
 static jstring nGetBackend(JNIEnv *env, jobject jobj, jlong jptr) {
     const MPinSDKBase::UserPtr *userPtr = (const MPinSDKBase::UserPtr *) jptr;
     return env->NewStringUTF(userPtr->get()->GetBackend().c_str());
@@ -84,6 +89,7 @@ static JNINativeMethod g_methodsUser[] =
                 NATIVE_METHOD(nGetRegistrationExpiration,
                               "(JLcom/miracl/mpinsdk/model/Expiration;)V"),
                 NATIVE_METHOD(nGetState, "(J)I"),
+                NATIVE_METHOD(nGetVerificationType, "(J)Ljava/lang/String;"),
                 NATIVE_METHOD(nGetBackend, "(J)Ljava/lang/String;"),
                 NATIVE_METHOD(nGetCustomerId, "(J)Ljava/lang/String;"),
                 NATIVE_METHOD(nGetMPinId, "(J)Ljava/lang/String;"),

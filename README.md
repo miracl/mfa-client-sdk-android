@@ -139,6 +139,10 @@ public class User implements Closeable {
         ...
     }
 
+    public VerificationType getVerificationType() {
+        ...
+    }
+
     public String getBackend() {
         ...
     }
@@ -165,6 +169,18 @@ public class User implements Closeable {
 ```
 
 The newly created user is in the `INVALID` state.
+
+The VerificationType enumeration returned from getVerificationType method looks like:
+
+```java
+public enum VerificationType {
+    NONE,     // NONE verification type denotes the MPinID is not verified
+    EMAIL,    // MAIL verification type denotes the MPinID is verified through email
+    REG_CODE, // REG_CODE verification type denotes the MPinID is verified through registration code
+    DVS,      // DVS verification type denotes the MPinID is DVS MPinID and verification was done on the auth MPinID
+    PLUGGABLE // PLUGGABLE verification type denotes custom process of verifying MPinID
+};
+```
 
 ##### `boolean isUserExisting(String id)`
 This method will return `true` if there is a user with the given identity, associated with the currently set backend.
