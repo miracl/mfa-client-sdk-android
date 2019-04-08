@@ -32,13 +32,13 @@ public class Status {
 
     public enum Code {
         OK,
-        CANCELED_BY_USER,        // Local error, returned when user cancels pin entering
+        PIN_INPUT_CANCELED,      // Local error, returned when user cancels pin entering
         CRYPTO_ERROR,            // Local error in crypto functions
         STORAGE_ERROR,           // Local storage related error
         NETWORK_ERROR,           // Local error - cannot connect to remote server (no internet, or invalid server/port)
         RESPONSE_PARSE_ERROR,    // Local error - cannot parse json response from remote server (invalid json or unexpected json structure)
         FLOW_ERROR,              // Local error - improper MPinSDK class usage
-        IDENTITY_NOT_AUTHORIZED, // Remote error - the remote server refuses user registration
+        IDENTITY_NOT_AUTHORIZED, // Remote error - the remote server refuses user registration or authentication
         IDENTITY_NOT_VERIFIED,   // Remote error - the remote server refuses user registration because identity is not verified
         REQUEST_EXPIRED,         // Remote error - the register/authentication request expired
         REVOKED,                 // Remote error - cannot get time permit (probably the user is temporary suspended)
@@ -47,7 +47,11 @@ public class Status {
         HTTP_SERVER_ERROR,       // Remote error, that was not reduced to one of the above - the remote server returned internal server error status (5xx)
         HTTP_REQUEST_ERROR,      // Remote error, that was not reduced to one of the above - invalid data sent to server, the remote server returned 4xx error status
         BAD_USER_AGENT,          // Remote error - user agent not supported
-        CLIENT_SECRET_EXPIRED    // Remote error - re-registration required because server master secret expired
+        CLIENT_SECRET_EXPIRED,   // Remote error - re-registration required because server master secret expired
+        BAD_CLIENT_VERSION,      // Remote error - wrong client app version
+        UNTRUSTED_DOMAIN_ERROR,  // Local error - a request to a domain, that is not in the trusted list was attempted
+        REGISTRATION_EXPIRED,    // Remote error - regOTT expired
+        OPERATION_NOT_ALLOWED    // Remote error - RegCode generation not allowed for users, registered with RegCode
     }
 
     public Status(int statusCode, String error) {
