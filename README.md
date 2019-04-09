@@ -5,7 +5,7 @@
 ### Prerequisites
 
 1. Download and install Android Studio or higher with Android SDK 16 or higher
-1. Download or Clone the project and its submodule to \<mfa-client-sdk-android\>
+1. Download or Clone the project
 
 ### Building the Milagro Mobile SDK
 
