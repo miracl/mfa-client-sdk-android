@@ -22,7 +22,6 @@
 
 #include <jni.h>
 #include <android/log.h>
-#include "mpin_sdk.h"
 #include "mfa_sdk.h"
 
 /*
@@ -66,17 +65,17 @@ JNIEnv* JNI_getJENV();
  */
 void RegisterNativeMethods(JNIEnv* env, const char* className, const JNINativeMethod* methods, int numMethods);
 
-void ReadJavaMap(JNIEnv* env, jobject jmap, MPinSDK::StringMap& map);
+void ReadJavaMap(JNIEnv* env, jobject jmap, MPinSDKBase::StringMap& map);
 
-jobject MakeJavaStatus(JNIEnv* env, const MPinSDK::Status& status);
+jobject MakeJavaStatus(JNIEnv* env, const MPinSDKBase::Status& status);
 
 std::string JavaToStdString(JNIEnv* env, jstring jstr);
 
-MPinSDK::UserPtr JavaToMPinUser(JNIEnv* env, jobject juser);
+MPinSDKBase::UserPtr JavaToMPinUser(JNIEnv* env, jobject juser);
 
 std::string JavaByteArrayToStdString(JNIEnv* env, jbyteArray jByteArr);
 
-MPinSDK::MultiFactor JavaStringArrayToMultiFactor(JNIEnv* env, jobjectArray jstringArray);
+MPinSDKBase::MultiFactor JavaStringArrayToMultiFactor(JNIEnv* env, jobjectArray jstringArray);
 
 jbyteArray StdStringToJavaByteArray(JNIEnv* env, std::string& str);
 

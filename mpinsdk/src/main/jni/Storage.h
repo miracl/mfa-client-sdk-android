@@ -30,8 +30,8 @@
 
 namespace store {
 
-typedef MPinSDK::IStorage IStorage;
-typedef MPinSDK::String String;
+typedef MPinSDKBase::IStorage IStorage;
+typedef MPinSDKBase::String String;
 
 class Storage: public IStorage {
 	public:

@@ -130,7 +130,7 @@ public class MPinMfaAsync {
 
 
     /**
-     * Initialize the {@link MPinSDK}.
+     * Initialize the {@link MPinMFA}.
      *
      * @param callback
      *   The callback for the operation. Can be <code>null</code> and the operation will still be executed.
@@ -140,7 +140,7 @@ public class MPinMfaAsync {
     }
 
     /**
-     * Initialize the {@link MPinSDK} with the provided cid and trusted domains.
+     * Initialize the {@link MPinMFA} with the provided cid and trusted domains.
      *
      * @param cid
      *   The customer ID associated with the mobile application. Can be <code>null</code> and can be set or changed later with

@@ -25,7 +25,6 @@
 
 #include "JNICommon.h"
 #include "JNIUser.h"
-#include "JNIMPinSDK.h"
 #include "JNIMPinMFA.h"
 
 static JavaVM * g_jvm;
@@ -45,7 +44,6 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 	g_jvm = vm;
 	JNIEnv* env = JNI_getJENV();
 
-	RegisterMPinSDKJNI(env);
 	RegisterMPinMFAJNI(env);
 	RegisterUserJNI(env);
 
@@ -69,7 +67,7 @@ void RegisterNativeMethods(JNIEnv* env, const char* className, const JNINativeMe
 	}
 }
 
-void ReadJavaMap(JNIEnv* env, jobject jmap, MPinSDK::StringMap& map)
+void ReadJavaMap(JNIEnv* env, jobject jmap, MPinSDKBase::StringMap& map)
 {
 	jclass clsMap = env->FindClass("java/util/Map");
 	jclass clsSet = env->FindClass("java/util/Set");
@@ -93,17 +91,17 @@ void ReadJavaMap(JNIEnv* env, jobject jmap, MPinSDK::StringMap& map)
 		jstring jvalue = (jstring) env->CallObjectMethod(jmap, midGet, jkey);
 
 		const char* cstr = env->GetStringUTFChars(jkey, NULL);
-		MPinSDK::String key(cstr);
+		MPinSDKBase::String key(cstr);
 		env->ReleaseStringUTFChars(jkey, cstr);
 		cstr = env->GetStringUTFChars(jvalue, NULL);
-		MPinSDK::String value(cstr);
+		MPinSDKBase::String value(cstr);
 		env->ReleaseStringUTFChars(jvalue, cstr);
 
 		map[key] = value;
 	}
 }
 
-jobject MakeJavaStatus(JNIEnv* env, const MPinSDK::Status& status)
+jobject MakeJavaStatus(JNIEnv* env, const MPinSDKBase::Status& status)
 {
 	jclass clsStatus = env->FindClass("com/miracl/mpinsdk/model/Status");
 	jmethodID ctorStatus = env->GetMethodID(clsStatus, "<init>", "(ILjava/lang/String;)V");
@@ -141,10 +139,10 @@ jbyteArray StdStringToJavaByteArray(JNIEnv* env, std::string& str)
     return strBytes;
 }
 
-MPinSDK::MultiFactor JavaStringArrayToMultiFactor(JNIEnv* env, jobjectArray jstringArray)
+MPinSDKBase::MultiFactor JavaStringArrayToMultiFactor(JNIEnv* env, jobjectArray jstringArray)
 {
     int factorCount = env->GetArrayLength(jstringArray);
-    MPinSDK::MultiFactor multiFactor;
+    MPinSDKBase::MultiFactor multiFactor;
 
     for (int i=0; i<factorCount; i++)
     {

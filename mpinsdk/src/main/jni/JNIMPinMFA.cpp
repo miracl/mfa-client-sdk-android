@@ -17,7 +17,6 @@
  *  under the License.
  ***************************************************************/
 
-#include "JNIMPinSDK.h"
 #include "JNICommon.h"
 #include "Context.h"
 
@@ -69,13 +68,13 @@ static void nClearCustomHeaders(JNIEnv* env, jobject jobj, jlong jptr)
 
 static void nAddTrustedDomain(JNIEnv* env, jobject jobj, jlong jptr, jstring domain)
 {
-    MPinSDK* sdk = (MPinSDK*) jptr;
+    MfaSDK* sdk = (MfaSDK*) jptr;
     sdk->AddTrustedDomain(JavaToStdString(env, domain));
 }
 
 static void nClearTrustedDomains(JNIEnv* env, jobject jobj, jlong jptr)
 {
-    MPinSDK* sdk = (MPinSDK*) jptr;
+    MfaSDK* sdk = (MfaSDK*) jptr;
     sdk->ClearTrustedDomains();
 }
 
@@ -154,7 +153,7 @@ static jobject nGetServiceDetails(JNIEnv* env, jobject jobj, jlong jptr, jstring
 
     MfaSDK::Status status = sdk->GetServiceDetails(JavaToStdString(env, jurl), serviceDetails);
 
-    if(status == MPinSDK::Status::OK)
+    if(status == MPinSDKBase::Status::OK)
     {
         jclass clsServiceDetails = env->FindClass("com/miracl/mpinsdk/model/ServiceDetails");
         jfieldID fIdName = env->GetFieldID(clsServiceDetails, "name", "Ljava/lang/String;");
@@ -239,7 +238,7 @@ static jobject nConfirmRegistration(JNIEnv* env, jobject jobj, jlong jptr, jobje
 static jobject nFinishRegistration(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring jfactor)
 {
 	MfaSDK* sdk = (MfaSDK*) jptr;
-	return MakeJavaStatus(env, sdk->FinishRegistration(JavaToMPinUser(env, juser), MPinSDK::MultiFactor(JavaToStdString(env, jfactor))));
+	return MakeJavaStatus(env, sdk->FinishRegistration(JavaToMPinUser(env, juser), MPinSDKBase::MultiFactor(JavaToStdString(env, jfactor))));
 }
 
 static jobject nFinishRegistrationMultiFactor(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jobjectArray jmultiFactor)
@@ -297,7 +296,7 @@ static jobject nStartAuthenticationRegCode(JNIEnv* env, jobject jobj, jlong jptr
 static jobject nFinishAuthentication(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring jfactor, jstring jaccessCode)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
-    return MakeJavaStatus(env, sdk->FinishAuthentication(JavaToMPinUser(env, juser), MPinSDK::MultiFactor(JavaToStdString(env, jfactor)), JavaToStdString(env, jaccessCode)));
+    return MakeJavaStatus(env, sdk->FinishAuthentication(JavaToMPinUser(env, juser), MPinSDKBase::MultiFactor(JavaToStdString(env, jfactor)), JavaToStdString(env, jaccessCode)));
 }
 
 static jobject nFinishAuthenticationRegCode(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jobjectArray jmultiFactor, jobject jregCode)
@@ -331,7 +330,7 @@ static jobject nFinishAuthenticationMultiFactor(JNIEnv* env, jobject jobj, jlong
     return MakeJavaStatus(env, sdk->FinishAuthentication(JavaToMPinUser(env, juser), JavaStringArrayToMultiFactor(env, jmultiFactor), JavaToStdString(env, jaccessCode)));
 }
 
-static jobject FinishAuthenticationAuthCode(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, MPinSDK::MultiFactor multiFactor, jstring jaccessCode, jobject jauthCode)
+static jobject FinishAuthenticationAuthCode(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, MPinSDKBase::MultiFactor multiFactor, jstring jaccessCode, jobject jauthCode)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
     MfaSDK::String authCodeData;
@@ -348,7 +347,7 @@ static jobject FinishAuthenticationAuthCode(JNIEnv* env, jobject jobj, jlong jpt
 
 static jobject nFinishAuthenticationAuthCode(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring jfactor, jstring jaccessCode, jobject jauthCode)
 {
-    return FinishAuthenticationAuthCode(env, jobj, jptr, juser, MPinSDK::MultiFactor(JavaToStdString(env, jfactor)), jaccessCode, jauthCode);
+    return FinishAuthenticationAuthCode(env, jobj, jptr, juser, MPinSDKBase::MultiFactor(JavaToStdString(env, jfactor)), jaccessCode, jauthCode);
 }
 
 static jobject nFinishAuthenticationAuthCodeMultiFactor(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jobjectArray jmultiFactor, jstring jaccessCode, jobject jauthCode)
@@ -362,7 +361,7 @@ static jboolean nIsRegistrationTokenSet(JNIEnv* env, jobject jobj, jlong jptr, j
     return (jboolean) sdk->IsRegistrationTokenSet(JavaToMPinUser(env, juser));
 }
 
-static jobject FinishAuthenticationOTP(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, MPinSDK::MultiFactor multiFactor, jobject jotp)
+static jobject FinishAuthenticationOTP(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, MPinSDKBase::MultiFactor multiFactor, jobject jotp)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
 
@@ -389,7 +388,7 @@ static jobject FinishAuthenticationOTP(JNIEnv* env, jobject jobj, jlong jptr, jo
 
 static jobject nFinishAuthenticationOTP(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring jfactor, jobject jotp)
 {
-    return FinishAuthenticationOTP(env, jobj, jptr, juser, MPinSDK::MultiFactor(JavaToStdString(env, jfactor)), jotp);
+    return FinishAuthenticationOTP(env, jobj, jptr, juser, MPinSDKBase::MultiFactor(JavaToStdString(env, jfactor)), jotp);
 }
 
 static jobject nFinishAuthenticationOTPMultiFactor(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jobjectArray jMultiFactor, jobject jotp)
@@ -399,7 +398,7 @@ static jobject nFinishAuthenticationOTPMultiFactor(JNIEnv* env, jobject jobj, jl
 
 
 static jobject Sign(JNIEnv *env, jobject jobj, jlong jptr, jobject juser, jbyteArray jdocumentHash,
-                   MPinSDK::MultiFactor multiFactor, jint jepochTime, jobject jsignature)
+                   MPinSDKBase::MultiFactor multiFactor, jint jepochTime, jobject jsignature)
 {
     MfaSDK* sdk = (MfaSDK*) jptr;
 
@@ -431,7 +430,7 @@ static jobject nSign(JNIEnv *env, jobject jobj, jlong jptr, jobject juser, jbyte
                     jstring jfactor, jint jepochTime, jobject jsignature)
 {
     return Sign(env, jobj, jptr, juser, jdocumentHash,
-                MPinSDK::MultiFactor(JavaToStdString(env, jfactor)), jepochTime, jsignature);
+                MPinSDKBase::MultiFactor(JavaToStdString(env, jfactor)), jepochTime, jsignature);
 }
 
 static jobject nSignMultiFactor(JNIEnv *env, jobject jobj, jlong jptr, jobject juser, jbyteArray jdocumentHash,

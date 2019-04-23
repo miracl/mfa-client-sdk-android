@@ -34,9 +34,9 @@ using namespace std;
 
 namespace net {
 
-	typedef MPinSDK::String String;
-	typedef MPinSDK::StringMap StringMap;
-	typedef MPinSDK::IHttpRequest IHttpRequest;
+	typedef MPinSDKBase::String String;
+	typedef MPinSDKBase::StringMap StringMap;
+	typedef MPinSDKBase::IHttpRequest IHttpRequest;
 
 	class HTTPConnector : public IHttpRequest {
 		public:

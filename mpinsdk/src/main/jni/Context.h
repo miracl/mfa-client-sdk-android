@@ -21,13 +21,12 @@
 #define _CONTEXT_H_
 
 #include "JNICommon.h"
-#include "mpin_sdk.h"
 
 namespace sdk
 {
-typedef MPinSDK::IContext IContext;
-typedef MPinSDK::IHttpRequest IHttpRequest;
-typedef MPinSDK::IStorage IStorage;
+typedef MPinSDKBase::IContext IContext;
+typedef MPinSDKBase::IHttpRequest IHttpRequest;
+typedef MPinSDKBase::IStorage IStorage;
 
 class Context: public IContext
 {
@@ -36,7 +35,7 @@ public:
 	virtual IHttpRequest * CreateHttpRequest() const;
 	virtual void ReleaseHttpRequest(IHttpRequest *request) const;
 	virtual IStorage * GetStorage(IStorage::Type type) const;
-	virtual MPinSDK::CryptoType GetMPinCryptoType() const;
+	virtual MPinSDKBase::CryptoType GetMPinCryptoType() const;
 	virtual ~Context();
 
 private:

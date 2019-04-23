@@ -66,9 +66,9 @@ IStorage * Context::GetStorage(IStorage::Type type) const
 	}
 }
 
-MPinSDK::CryptoType Context::GetMPinCryptoType() const
+MPinSDKBase::CryptoType Context::GetMPinCryptoType() const
 {
-	return MPinSDK::CRYPTO_NON_TEE;
+	return MPinSDKBase::CRYPTO_NON_TEE;
 }
 
 Context::~Context()
