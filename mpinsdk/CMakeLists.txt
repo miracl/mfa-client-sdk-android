@@ -20,7 +20,6 @@ set_target_properties(MPinSDKCore PROPERTIES IMPORTED_LOCATION
 
 add_library(AndroidMpinSDK SHARED
     ${JNI_DIR}/JNICommon.cpp
-    ${JNI_DIR}/JNIMPinSDK.cpp
     ${JNI_DIR}/JNIMPinMFA.cpp
     ${JNI_DIR}/JNIUser.cpp
     ${JNI_DIR}/HTTPConnector.cpp

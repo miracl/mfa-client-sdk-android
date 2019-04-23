@@ -30,12 +30,12 @@
 #include "JNICommon.h"
 
 class Exception : public std::exception {
-	MPinSDK::String m_message;
+	MPinSDKBase::String m_message;
 
     protected :
     Exception () {}
     public:
-        Exception ( const MPinSDK::String & aMessage ) : exception() {
+        Exception ( const MPinSDKBase::String & aMessage ) : exception() {
             m_message = aMessage;
         }
         virtual const char * what () const throw() {
@@ -47,13 +47,13 @@ class Exception : public std::exception {
 class IllegalArgumentException : public Exception {
 	IllegalArgumentException() {}
     public:
-		IllegalArgumentException ( const MPinSDK::String & aMessage ) : Exception(aMessage) {}
+		IllegalArgumentException ( const MPinSDKBase::String & aMessage ) : Exception(aMessage) {}
 };
 
 class JNIOperationFailureException : public Exception {
 	JNIOperationFailureException(){}
     public:
-		JNIOperationFailureException ( const MPinSDK::String & aMessage ) : Exception(aMessage) {}
+		JNIOperationFailureException ( const MPinSDKBase::String & aMessage ) : Exception(aMessage) {}
 };
 
 
