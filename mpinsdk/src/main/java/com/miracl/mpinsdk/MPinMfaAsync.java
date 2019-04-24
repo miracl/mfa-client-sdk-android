@@ -40,6 +40,7 @@ import com.miracl.mpinsdk.util.Hex;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 
@@ -845,7 +846,7 @@ public class MPinMfaAsync {
      */
     public void verifyDocumentHash(@NonNull final byte[] document, @NonNull final byte[] documentHash,
                                    final @NonNull Callback<Boolean> callback) {
-        final String documentHashString = new String(documentHash).toLowerCase();
+        final String documentHashString = new String(documentHash).toLowerCase(Locale.getDefault());
         final String hashedDocument = Hex.encode(mMfaSdk.hashDocument(document));
 
         mWorkerHandler.post(new Runnable() {
