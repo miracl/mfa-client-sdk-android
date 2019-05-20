@@ -1,0 +1,67 @@
+title MFA Platform Login
+
+participant Authenticator App as app
+participant Mobile SDK as sdk
+participant Login Page\n(Browser) as codepad
+participant Landing Page as landing
+participant MFA Platform as mfa
+
+note over codepad
+    User chooses to login
+    and the Login Page
+    displays a QR Code
+end note
+
+app<-->codepad: Scan QR Code of the form <landing-url>#<access-code>
+app->sdk: getServiceDetails(<landing-url>, &serviceDetails)
+sdk->landing: GET <landing-url>/service
+landing-->sdk: OK, data: <serviceDetails>
+sdk-->app: Status OK, populated <serviceDetails>
+app->sdk: setBackend(<backendUrl>)
+sdk->mfa: GET clientSetting
+mfa-->sdk: OK, data: <clientSettings>
+sdk-->app: Status OK
+app->sdk: getSessionDetails(<accessCode>, &sessionDetails)
+sdk->mfa: POST /codeStatus, data: { status, wid }
+mfa-->sdk: OK, data: <sessionDetails>
+sdk-->app: Status OK, populated <sessionDetails>
+app->sdk: listUsers(&usersList)
+sdk-->app: Status OK, populated <usersList>
+alt <preroll-id> is not empty
+    alt <preroll-id> is not in <usersList>
+        app->app: Start registration of <preroll-id>
+    end alt
+    app->app: Select <preroll-id>
+    note right of app
+        NOTE: The registration flow is listed separately
+    end note
+else
+    alt End user chooses to register a new identity
+        app->app: Start registration of new identity
+        app->app: Select newly registered identity
+    else End user selects an identity from the list
+        app->app: Select existing identity
+    end alt
+end alt
+app->sdk: startAuthentication(<identity>, <accessCode>)
+sdk->mfa: POST /codeStatus, data: { status, wid, userId }
+mfa-->sdk: OK
+sdk<-->mfa: Fetch Time Permits, if required
+sdk-->app: Status OK
+app->app: Read <PIN> from end user
+app->sdk: finishAuthentication(<identity>, <PIN>, <accessCode>)
+sdk->mfa: POST /pass1, data: { mpin-id, dtas, U }
+mfa->mfa: Generate y
+mfa->mfa: Store session data <mpin-id, dtas, y>
+mfa-->sdk: OK, data: { y }
+sdk->sdk: Calculate V using <client-key> and <curve>
+sdk->mfa: POST /pass2, data: { mpin-id, WID, V }
+mfa->mfa: Retreive Server Key Shares, according to <dtas>,\nand decide whether we <need-to-rotate>.\nThis also determines which <curve> is used.
+mfa->mfa: Construct full <server-key> using <curve>
+mfa->mfa: Verify V using <server-key>, <curve>, <y>
+mfa-->sdk: 200 OK, data: { authOTT }
+
+sdk->mfa: POST /authenticate, data: { authOTT, authzRequest }
+mfa-->sdk: OK
+
+sdk-->app: Status OK
