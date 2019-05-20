@@ -1,0 +1,42 @@
+title MFA Platform Login
+
+participant Authenticator App as app
+participant Mobile SDK as sdk
+participant Login Page\n(Browser) as codepad
+
+note over codepad
+    User chooses to login
+    and the Login Page
+    displays a QR Code
+end note
+
+app<-->codepad: Scan QR Code of the form <landing-url>#<access-code>
+app->sdk: getServiceDetails(<landing-url>, &serviceDetails)
+sdk-->app: Status OK, populated <serviceDetails>
+app->sdk: setBackend(<backendUrl>)
+sdk-->app: Status OK
+app->sdk: getSessionDetails(<accessCode>, &sessionDetails)
+sdk-->app: Status OK, populated <sessionDetails>
+app->sdk: listUsers(&usersList)
+sdk-->app: Status OK, populated <usersList>
+alt <preroll-id> is not empty
+    alt <preroll-id> is not in <usersList>
+        app->app: Start registration of <preroll-id>
+    end alt
+    app->app: Select <preroll-id>
+    note right of app
+        NOTE: The registration flow is listed separately
+    end note
+else
+    alt End user chooses to register a new identity
+        app->app: Start registration of new identity
+        app->app: Select newly registered identity
+    else End user selects an identity from the list
+        app->app: Select existing identity
+    end alt
+end alt
+app->sdk: startAuthentication(<identity>, <accessCode>)
+sdk-->app: Status OK
+app->app: Read <PIN> from end user
+app->sdk: finishAuthentication(<identity>, <PIN>, <accessCode>)
+sdk-->app: Status OK

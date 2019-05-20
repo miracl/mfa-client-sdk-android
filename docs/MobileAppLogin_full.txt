@@ -1,0 +1,82 @@
+title Mobile App Login
+
+participant Mobile App as mobapp
+participant Mobile SDK as mobsdk
+participant MFA Platform as mfa
+participant RPA Backend as rpa
+participant Backend SDK as besdk
+
+note over mobapp:
+    The Mobile App has possetion
+    of the Client ID, issued by
+    the MFA Platform
+end note
+
+note over rpa:
+    The RPA Backend has possetion
+    of the Client ID and the Client Secret,
+    issued by the MFA Platform
+end note
+
+
+mobapp->mobsdk: setCid(<clientId>)
+
+mobapp->mobsdk: setBackend(<backendUrl>)
+mobsdk->mfa: Get /clientSettings,
+mfa-->mobsdk: OK, data: { clientSettings }
+mobsdk-->mobapp: Status OK
+
+mobapp->mobsdk: listUsers(&usersList)
+note right of mobapp
+	NOTE: The diagram assumes that there is a completed registration. 
+	The registration flow is listed separately.
+end note
+mobsdk-->mobapp: Status OK, populated <usersList>
+
+mobapp->rpa: GET /authzurl
+rpa-->mobapp: OK, data: { authorizeURL }
+mobapp->mobsdk: getAccessCode(<authorizeURL>, &accessCode)
+mobsdk->mfa: POST /authorizeURL
+mfa-->mobsdk: OK, data: { webOTT, qrURL, accessURL }
+mobsdk->mobsdk: Extract accessCode from qrURL
+mobsdk-->mobapp: Status OK, populated <accessCode>
+
+mobapp->mobsdk: startAuthentication(<user>, <accessCode>)
+mobsdk->mfa: POST /codeStatus, data: { status, wid, userId }
+mfa-->mobsdk: OK
+mobsdk<-->mfa: Fetch Time Permits, if required
+mobsdk->mobapp: Status OK
+
+mobapp->mobapp: Get PIN from end-user
+
+mobapp->mobsdk: finishAuthentication(<user>, <PIN>, <accessCode>, &authzCode)
+
+mobsdk->mfa: POST /pass1, data: { mpin-id, dtas, U }
+mfa->mfa: Generate y
+mfa->mfa: Store session data <mpin-id, dtas, y>
+mfa-->mobsdk: OK, data: { y }
+mobsdk->mobsdk: Calculate V using <client-key> and <curve>
+mobsdk->mfa: POST /pass2, data: { mpin-id, WID, V }
+mfa->mfa: Retreive Server Key Shares, according to <dtas>,\nand decide whether we <need-to-rotate>.\nThis also determines which <curve> is used.
+mfa->mfa: Construct full <server-key> using <curve>
+mfa->mfa: Verify V using <server-key>, <curve>, <y>
+mfa-->mobsdk: 200 OK, data: { authOTT }
+
+mobsdk->mfa: POST /authenticate, data: { authOTT, authzRequest }
+mfa-->mobsdk: OK, data: { authzCode }
+
+mobsdk-->mobapp: Status OK, populated <authzCode>
+
+mobapp->rpa: App-sepcific request for data or for authentication validation, pass <userId>, <authzCode>
+rpa->besdk: validate_authorization(), passing in <authzCode>
+besdk->mfa: Token Endpoint, passing <authzCode>
+mfa-->besdk: Access Token, ID Token
+besdk->besdk: Validate ID Token
+besdk-->rpa: Access Token
+rpa->besdk: get_user_id()
+besdk-->rpa: User ID
+rpa->rpa: Verify User ID == <userId>
+rpa->rpa: (Optional) Generate app-specific Authentication Token
+rpa-->mobapp: App-specific response, pass back either\nAccess Token or app-specific Authentication Token
+
+mobapp<->rpa: Get data using provided Token
