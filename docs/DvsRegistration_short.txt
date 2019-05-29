@@ -1,0 +1,22 @@
+title DVS Registration
+
+participant Mobile App as ma
+participant Mobile SDK as cl
+
+note over ma
+  User is already registered with M-Pin identity
+end note
+
+ma->ma: Get PIN from user
+
+ma->cl: startRegistrationDvs(<user>, <pin>)
+cl-->ma: Status OK
+
+note over ma
+  Ask end-user for PIN/secret OR
+  Use the PIN provided for Authentication above
+  Depending on the application logic
+end note
+
+ma->cl: finishRegistrationDvs(<user>, <pin>)
+cl-->ma: Status OK

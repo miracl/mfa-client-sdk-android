@@ -1,0 +1,36 @@
+title DVS Signing
+
+participant Mobile App as mobapp
+participant Mobile SDK as mobsdk
+participant RPA Backend as rpa
+
+note over mobapp
+  User has a registered DVS identity
+end note
+
+note over mobapp, rpa
+  Transaction document needs to be sent to the relying party\nbackend where the transaction itself is created
+end note
+
+mobapp->rpa: POST document
+rpa-->mobapp: OK, transaction
+
+note over mobapp, mobsdk
+  The mobile app needs to verify that the created transaction hash matches the sent document
+end note
+mobapp->mobsdk: verifyDocumentHash(<document>, <transaction.documentHash>)
+mobsdk-->mobapp: Status OK
+
+mobapp->mobapp: Get signing PIN from end-user
+mobapp->mobsdk: sign(<user>, <hash>, <PIN>, <timestamp>, &signature)
+mobsdk-->mobapp: Status OK, populated <signature>
+
+note over mobapp, rpa
+Send post request to the relying party backend in order to verify the signature
+end note
+mobapp->rpa: POST verifySignature
+rpa-->mobapp: Status OK
+
+note over mobapp
+  Transaction is verified
+end note

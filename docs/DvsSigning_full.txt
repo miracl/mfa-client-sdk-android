@@ -1,0 +1,61 @@
+title DVS Signing
+
+participant Mobile App as mobapp
+participant Mobile SDK as mobsdk
+participant RPA Backend as rpa
+participant MFA Platform as mfa
+
+note over mobapp
+  User has a registered DVS identity
+end note
+
+note over mobapp, rpa
+  Transaction document needs to be sent to the relying party\nbackend where the transaction itself is created
+end note
+
+mobapp->rpa: POST document
+rpa-->mobapp: OK, transaction
+
+note over mobapp
+  The mobile app needs to verify that the created transaction hash matches the sent document
+end note
+mobapp->mobsdk: verifyDocumentHash(<document>, <transaction.documentHash>)
+mobsdk-->mobapp: Status OK
+
+mobapp->mobapp: Get signing PIN from end-user
+mobapp->mobsdk: sign(<user>, <hash>, <PIN>, <timestamp>, &signature)
+note over mobsdk, mfa
+  DVS Sign authentication
+end note
+
+mobsdk->mfa: POST /pass1, data: { mpin-id, dtas, U }
+mfa->mfa: Generate y
+mfa->mfa: Store session data <mpin-id, dtas, y>
+mfa-->mobsdk: OK, data: { y }
+mobsdk->mobsdk: Calculate V using <client-key> and <curve>
+mobsdk->mfa: POST /pass2, data: { mpin-id, WID, V }
+mfa->mfa: Retreive Server Key Shares, according to <dtas>,\nand decide whether we <need-to-rotate>.\nThis also determines which <curve> is used.
+mfa->mfa: Construct full <server-key> using <curve>
+mfa->mfa: Verify V using <server-key>, <curve>, <y>
+mfa-->mobsdk: 200 OK, data: { authOTT }
+
+mobsdk->mfa: POST /authenticate, data: { authOTT }
+mfa-->mobsdk: OK
+
+note over mobsdk
+DVS  Sign
+end note
+mobsdk->mobsdk: Create crypto signature
+mobsdk-->mobapp: Status OK, populated <signature>
+
+note over mobapp, rpa
+Send post request to the relying party backend in order to verify the signature
+end note
+mobapp->rpa: POST verifySignature
+rpa->mfa: SDK VerifySignature()
+mfa->rpa: Status OK
+rpa-->mobapp: Status OK
+
+note over mobapp
+  Transaction is verified
+end note

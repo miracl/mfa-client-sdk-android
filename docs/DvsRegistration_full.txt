@@ -1,0 +1,66 @@
+title DVS Registration
+
+participant Mobile App as ma
+participant Mobile SDK as cl
+participant MFA Platform\nincl. D-TA#1 as mfa
+participant D-TA#2 as dta2
+
+note over ma
+  User is already registered with M-Pin identity
+end note
+
+ma->ma: Get PIN from user
+
+ma->cl: startRegistrationDvs(<user>, <pin>)
+
+note over cl,mfa
+  START M-Pin authentication
+end note
+
+cl->mfa: POST /pass1, data: { mpin-id, dtas, U }
+mfa->mfa: Generate y
+mfa->mfa: Store session data <mpin-id, dtas, y>
+mfa-->cl: OK, data: { y }
+
+cl->cl: Calculate V using <client-key> and <curve>
+    cl->mfa: POST /pass2, data: { mpin-id, WID, V }
+mfa->mfa: Retreive Server Key Shares, according to <dtas>,\nand decide whether we <need-to-rotate>.\nThis also determines which <curve> is used.
+mfa->mfa: Construct full <server-key> using <curve>
+mfa->mfa: Verify V using <server-key>, <curve>, <y>
+mfa-->cl: OK, data: { authOTT }
+
+cl->mfa: POST /authenticate, data: { authOTT, scope="dvs" }
+mfa-->cl: OK, data: { dvs-register-token }
+
+note over cl
+  Check if client secret need rotate
+  As normal WaM Authentication flow
+end note
+
+note over cl,mfa
+  END M-Pin Authentication
+end note
+
+cl->cl: Generate public/private key-pair
+
+cl->mfa: POST /dvsregister { dvs-register-token, public-key }
+mfa-->cl: OK, data: { <cs2-url>, <mpin-id>, <dvs-cs1>, <dtas> }
+
+cl->dta2: GET <cs2-url>
+dta2-->cl: OK, data: { dvsClientSecret: <dvs-cs2> }
+
+cl-->ma: Status OK
+
+note over ma
+  Ask end-user for PIN/secret OR
+  Use the PIN provided for Authentication above
+  Depending on the application logic
+end note
+
+ma->cl: finishRegistrationDvs(<user>, <pin>)
+
+cl->cl: <dvs-cs> = (<dvs-cs1> + <dvs-cs2>) * <private-key>
+cl->cl: <dvs-token> = <dvs-cs> - <PIN>,\n calculated for <mpin-id> + <public-key>
+cl->cl: Store <mpin-id>, <public-key>, <dvs-token>, <dtas>\nDiscard <dvs-cs>, <PIN>, <private-key>
+
+cl-->ma: Status OK
