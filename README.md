@@ -394,7 +394,7 @@ public class RegCode {
 
 The method receives an array of authentication factors, `multiFactor`, and if only a single secret needs to be passed, then `multiFactor` should be an array of a single item.
 
-##### `Status startRegistrationDvs(User user, String token)`
+##### `Status startRegistrationDvs(User user, String[] multiFactor)`
 This method starts the user registration for the _DVS (Designated Verifier Signature)_ functionality.
 
 The DVS functionality allows a customer application to verify signatures of documents/transactions, signed by the end-user.
@@ -402,8 +402,7 @@ The DVS functionality allows a customer application to verify signatures of docu
 It is a separate process than the registration for authentication, while a user should be authenticated in order to register for DVS.
 This separate process allows users to register for DVS only if they want/need to, and also to select a different PIN/secret for signing documents.
 
-The expected `token` is the _Access Token_ issued for the user during the _Open ID Connect Authentication Process_.
-This `token` has to be passed from the Relying Party Backend to the Mobile App in a way that is outside the scope of this Mobile SDK.
+The method receives an array of authentication identity factors, `multiFactor`, and if only a single secret needs to be passed, then `multiFactor` should be an array of a single item.
 
 ##### `Status finishRegistrationDvs(User user, String[] multiFactor)`
 This method finalizes the user registration process for the DVS functionality.
