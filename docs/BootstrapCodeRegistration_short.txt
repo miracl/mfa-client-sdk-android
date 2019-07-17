@@ -1,0 +1,21 @@
+title Bootstrap Code Registration
+participant Mobile App as mobapp
+participant Mobile SDK as mobsdk
+participant RPA Backend as rpa
+note over mobapp
+  User initiates bootstrap registration
+end note
+mobapp->mobsdk: getAccessCode(<authorizeURL>, &accessCode)
+mobsdk-->mobapp: Status OK, populated <accessCode>
+mobapp->mobsdk: startRegistration(<user>, <accessCode>, <pushToken>, <regCode>)
+mobsdk-->mobapp: Status OK
+mobapp->mobsdk: confirmRegistration(<user>)
+mobsdk-->mobapp: Status OK
+note over mobapp
+  Ask for PIN
+end note
+mobapp->mobsdk: finishRegistration(<user>, <PIN>)
+mobsdk-->mobapp: Status OK
+note over mobapp
+  Bootstrap code registration done
+end note
