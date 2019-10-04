@@ -305,6 +305,34 @@ public class MPinMfaAsync {
         });
     }
 
+    public void startVerification(final @NonNull User user, @NonNull final Callback<Void> callback){
+
+        mWorkerHandler.post(new Runnable() {
+
+            @Override
+            public void run(){
+                Status status = mMfaSdk.startVerification(user);
+                if (callback != null) {
+                    callback.onResult(status, null);
+                }
+            }
+        });
+    }
+
+    public void finishVerification(final @NonNull User user,final @NonNull String accessCode, @NonNull final Callback<String> callback ){
+        mWorkerHandler.post(new Runnable() {
+
+            @Override
+            public void run(){
+                StringBuilder activationToken = new StringBuilder();
+                Status status = mMfaSdk.finishVerification(user,accessCode, activationToken);
+                if (callback != null) {
+                    callback.onResult(status, activationToken.toString());
+                }
+            }
+        });
+    }
+
     // /**
     //  * Set the backend for the sdk from the specified user
     //  *

@@ -246,6 +246,15 @@ public class MPinMFA implements Closeable {
         return nHashDocument(mPtr, document);
     }
 
+    public Status startVerification(User user) {
+        return nStartVerification(mPtr, user);
+    }
+
+    public Status finishVerification(User user, String code, StringBuilder activationToken) {
+        return nFinishVerification(mPtr, user, code, activationToken);
+    }
+
+
     // Native methods from MPinSDKBase
 
     private native long nConstruct();
@@ -341,4 +350,8 @@ public class MPinMFA implements Closeable {
     private native boolean nIsRegistrationTokenSet(long ptr, User user);
 
     private native byte[] nHashDocument(long ptr, byte[] document);
+
+    private native Status nStartVerification(long ptr, User user);
+
+    private native Status nFinishVerification(long ptr, User user, String code, StringBuilder activationToken);
 }

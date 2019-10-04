@@ -210,6 +210,28 @@ static jobject nAbortSession(JNIEnv* env, jobject jobj, jlong jptr, jstring jacc
     return MakeJavaStatus(env, sdk->AbortSession(JavaToStdString(env, jaccessCode)));
 }
 
+static jobject nStartVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject juser)
+{
+    MfaSDK* sdk = (MfaSDK *)jptr;
+    return MakeJavaStatus(env,sdk->StartVerification(JavaToMPinUser(env, juser)));
+}
+
+static jobject nFinishVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject juser, jstring jaccessCode, jstring activationToken)
+{
+    MfaSDK* sdk = (MfaSDK *)jptr;
+    MfaSDK::String jActivationToken;
+
+    MfaSDK::Status status = sdk->FinishVerification(JavaToMPinUser(env, juser),JavaToStdString(env, jaccessCode), jActivationToken);
+
+    jclass clsStringBuilder = env->FindClass("java/lang/StringBuilder");
+    jmethodID midSetLength = env->GetMethodID(clsStringBuilder, "setLength", "(I)V");
+    env->CallVoidMethod(activationToken, midSetLength, jActivationToken.size());
+    jmethodID midReplace = env->GetMethodID(clsStringBuilder, "replace", "(IILjava/lang/String;)Ljava/lang/StringBuilder;");
+    env->CallObjectMethod(activationToken, midReplace, 0, jActivationToken.size(), env->NewStringUTF(jActivationToken.c_str()));
+
+    return MakeJavaStatus(env, status);
+}
+
 
 static jobject nStartRegistration(JNIEnv* env, jobject jobj, jlong jptr, jobject juser, jstring jaccessCode, jstring jpushToken)
 {

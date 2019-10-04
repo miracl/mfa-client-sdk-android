@@ -72,6 +72,9 @@ public:
 
     Status GetAccessCode(const String& authzUrl, OUT String& accessCode);
 
+    Status StartVerification(INOUT UserPtr user);
+    Status FinishVerification(INOUT UserPtr user, String code, OUT String& activationToken);
+    
     Status StartAuthentication(INOUT UserPtr user, const String& accessCode);
     Status FinishAuthentication(INOUT UserPtr user, const MultiFactor& factors, const String& accessCode);
     Status FinishAuthentication(INOUT UserPtr user, const MultiFactor& factors, const String& accessCode, OUT String& authzCode);
