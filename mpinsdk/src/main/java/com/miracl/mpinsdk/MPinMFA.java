@@ -36,6 +36,11 @@ public class MPinMFA implements Closeable {
 
     public static final String CONFIG_BACKEND = "backend";
 
+    /**
+     * MPin Authentication notification channel ID
+     */
+    public static final String AUTHENTICATION_NOTIFICATION_CHANNEL_ID = "mpin_authentication_notification_channel";
+
     private long mPtr;
 
     public MPinMFA() {
