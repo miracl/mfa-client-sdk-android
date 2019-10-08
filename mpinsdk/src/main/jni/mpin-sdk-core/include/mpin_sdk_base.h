@@ -388,6 +388,7 @@ protected:
             GET_SESSION_DETAILS,
             ABORT_SESSION,
             GET_ACCESS_CODE,
+            VERIFICATION
         };
 
         enum DataType
@@ -454,7 +455,7 @@ protected:
     Status CheckUserIsAwaitingRegistration(IN UserPtr user);
     bool IsUserKeyExisting(const String& key);
 
-    Status StartVerification(INOUT UserPtr user);
+    Status StartVerification(INOUT UserPtr user, INOUT String clientId);
     Status FinishVerification(INOUT UserPtr user, String code, OUT String& activationToken);
     Status StartRegistration(INOUT UserPtr user, const String& activateCode, const String& userData, const String& accessCode, const String& pushToken);
     Status RestartRegistration(INOUT UserPtr user, const String& userData);
