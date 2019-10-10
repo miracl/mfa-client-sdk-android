@@ -221,7 +221,7 @@ static jobject nFinishVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject
     MfaSDK* sdk = (MfaSDK *)jptr;
     MfaSDK::String jActivationToken;
 
-    MfaSDK::Status status = sdk->FinishVerification(JavaToMPinUser(env, juser),JavaToStdString(env, jaccessCode), jActivationToken);
+    MfaSDK::Status status = sdk->FinishVerification(JavaToMPinUser(env, juser), JavaToStdString(env, jaccessCode), jActivationToken);
 
     jclass clsStringBuilder = env->FindClass("java/lang/StringBuilder");
     jmethodID midSetLength = env->GetMethodID(clsStringBuilder, "setLength", "(I)V");
@@ -515,6 +515,8 @@ static JNINativeMethod g_methodsMfaSDK[] =
     NATIVE_METHOD(nGetSessionDetails, "(JLjava/lang/String;Lcom/miracl/mpinsdk/model/SessionDetails;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nSetCID, "(JLjava/lang/String;)V"),
     NATIVE_METHOD(nAbortSession, "(JLjava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nStartVerification, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nFinishVerification, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nStartRegistration, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nStartRegistrationRegCode, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nRestartRegistration, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),
