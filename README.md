@@ -50,7 +50,8 @@ public class Status {
         BAD_CLIENT_VERSION,      // Remote error - wrong client app version
         UNTRUSTED_DOMAIN_ERROR,  // Local error - a request to a domain, that is not in the trusted list was attempted
         REGISTRATION_EXPIRED,    // Remote error - regOTT expired
-        OPERATION_NOT_ALLOWED    // Remote error - RegCode generation not allowed for users, registered with RegCode
+        OPERATION_NOT_ALLOWED,   // Remote error - RegCode generation not allowed for users, registered with RegCode
+        VERIFICATION_FAILED      // Remote error - Verification failed because of server error or invalid user id
     }
 
     public Status(int statusCode, String error) {
