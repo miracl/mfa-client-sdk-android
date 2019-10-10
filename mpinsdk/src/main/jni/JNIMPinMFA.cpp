@@ -210,10 +210,10 @@ static jobject nAbortSession(JNIEnv* env, jobject jobj, jlong jptr, jstring jacc
     return MakeJavaStatus(env, sdk->AbortSession(JavaToStdString(env, jaccessCode)));
 }
 
-static jobject nStartVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject juser)
+static jobject nStartVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject juser, jstring jclientId, jstring jredirectUri)
 {
     MfaSDK* sdk = (MfaSDK *)jptr;
-    return MakeJavaStatus(env,sdk->StartVerification(JavaToMPinUser(env, juser)));
+    return MakeJavaStatus(env,sdk->StartVerification(JavaToMPinUser(env, juser), JavaToStdString(env, jclientId), JavaToStdString(env, jredirectUri)));
 }
 
 static jobject nFinishVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject juser, jstring jaccessCode, jstring activationToken)

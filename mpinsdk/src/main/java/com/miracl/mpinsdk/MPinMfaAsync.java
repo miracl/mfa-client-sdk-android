@@ -305,13 +305,25 @@ public class MPinMfaAsync {
         });
     }
 
-    public void startVerification(final @NonNull User user, @NonNull final Callback<Void> callback){
+    /**
+     * Start the verification process for a previously created {@link User}.
+     *
+     * @param user
+     *   The user to start the verification for
+     * @param clientId
+     *   The client ID associated with the user
+     * @param redirectURI
+     *   The redirectUri...
+     * @param callback
+     *   Callback for the operation
+     */
+    public void startVerification(final @NonNull User user, final @NonNull String clientId, final @NonNull String redirectUri, @NonNull final Callback<Void> callback){
 
         mWorkerHandler.post(new Runnable() {
 
             @Override
             public void run(){
-                Status status = mMfaSdk.startVerification(user);
+                Status status = mMfaSdk.startVerification(user, clientId, redirectUri);
                 if (callback != null) {
                     callback.onResult(status, null);
                 }
@@ -319,13 +331,23 @@ public class MPinMfaAsync {
         });
     }
 
-    public void finishVerification(final @NonNull User user,final @NonNull String accessCode, @NonNull final Callback<String> callback ){
+    /**
+     * Finish the verification process for a previously created {@link User}.
+     *
+     * @param user
+     *   The user to finish the verification for
+     * @param accessCode
+     *   A valid access code
+     * @param callback
+     *   Callback with the generated activation token
+     */
+    public void finishVerification(final @NonNull User user, final @NonNull String accessCode, @NonNull final Callback<String> callback) {
         mWorkerHandler.post(new Runnable() {
 
             @Override
             public void run(){
                 StringBuilder activationToken = new StringBuilder();
-                Status status = mMfaSdk.finishVerification(user,accessCode, activationToken);
+                Status status = mMfaSdk.finishVerification(user, accessCode, activationToken);
                 if (callback != null) {
                     callback.onResult(status, activationToken.toString());
                 }
