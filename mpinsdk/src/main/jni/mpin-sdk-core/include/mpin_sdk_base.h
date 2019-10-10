@@ -455,7 +455,7 @@ protected:
     Status CheckUserIsAwaitingRegistration(IN UserPtr user);
     bool IsUserKeyExisting(const String& key);
 
-    Status StartVerification(INOUT UserPtr user, INOUT String clientId);
+    Status StartVerification(INOUT UserPtr user, INOUT String clientId,INOUT String redirectURI);
     Status FinishVerification(INOUT UserPtr user, String code, OUT String& activationToken);
     Status StartRegistration(INOUT UserPtr user, const String& activateCode, const String& userData, const String& accessCode, const String& pushToken);
     Status RestartRegistration(INOUT UserPtr user, const String& userData);

@@ -72,7 +72,7 @@ public:
 
     Status GetAccessCode(const String& authzUrl, OUT String& accessCode);
 
-    Status StartVerification(INOUT UserPtr user);
+    Status StartVerification(INOUT UserPtr user, INOUT const String& clientId, INOUT const String& redirectURI);
     Status FinishVerification(INOUT UserPtr user, String code, OUT String& activationToken);
     
     Status StartAuthentication(INOUT UserPtr user, const String& accessCode);
