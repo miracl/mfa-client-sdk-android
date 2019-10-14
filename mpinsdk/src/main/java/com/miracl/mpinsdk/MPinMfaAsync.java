@@ -336,18 +336,18 @@ public class MPinMfaAsync {
      *
      * @param user
      *   The user to finish the verification for
-     * @param accessCode
-     *   A valid access code
+     * @param verificationCode
+     *   A valid verification code
      * @param callback
      *   Callback with the generated activation token
      */
-    public void finishVerification(final @NonNull User user, final @NonNull String accessCode, @NonNull final Callback<String> callback) {
+    public void finishVerification(final @NonNull User user, final @NonNull String verificationCode, @NonNull final Callback<String> callback) {
         mWorkerHandler.post(new Runnable() {
 
             @Override
             public void run(){
                 StringBuilder activationToken = new StringBuilder();
-                Status status = mMfaSdk.finishVerification(user, accessCode, activationToken);
+                Status status = mMfaSdk.finishVerification(user, verificationCode, activationToken);
                 if (callback != null) {
                     callback.onResult(status, activationToken.toString());
                 }

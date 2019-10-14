@@ -216,12 +216,12 @@ static jobject nStartVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject 
     return MakeJavaStatus(env,sdk->StartVerification(JavaToMPinUser(env, juser), JavaToStdString(env, jclientId), JavaToStdString(env, jredirectUri)));
 }
 
-static jobject nFinishVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject juser, jstring jaccessCode, jstring activationToken)
+static jobject nFinishVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject juser, jstring jverificationCode, jstring activationToken)
 {
     MfaSDK* sdk = (MfaSDK *)jptr;
     MfaSDK::String jActivationToken;
 
-    MfaSDK::Status status = sdk->FinishVerification(JavaToMPinUser(env, juser), JavaToStdString(env, jaccessCode), jActivationToken);
+    MfaSDK::Status status = sdk->FinishVerification(JavaToMPinUser(env, juser), JavaToStdString(env, jverificationCode), jActivationToken);
 
     jclass clsStringBuilder = env->FindClass("java/lang/StringBuilder");
     jmethodID midSetLength = env->GetMethodID(clsStringBuilder, "setLength", "(I)V");

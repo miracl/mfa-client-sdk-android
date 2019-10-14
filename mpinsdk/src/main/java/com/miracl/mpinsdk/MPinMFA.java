@@ -250,8 +250,8 @@ public class MPinMFA implements Closeable {
         return nStartVerification(mPtr, user, clientId, redirectUri);
     }
 
-    public Status finishVerification(User user, String code, StringBuilder activationToken) {
-        return nFinishVerification(mPtr, user, code, activationToken);
+    public Status finishVerification(User user, String verificationCode, StringBuilder activationToken) {
+        return nFinishVerification(mPtr, user, verificationCode, activationToken);
     }
 
 
@@ -353,5 +353,5 @@ public class MPinMFA implements Closeable {
 
     private native Status nStartVerification(long ptr, User user, String clientId, String redirectUri);
 
-    private native Status nFinishVerification(long ptr, User user, String code, StringBuilder activationToken);
+    private native Status nFinishVerification(long ptr, User user, String verificationCode, StringBuilder activationToken);
 }
