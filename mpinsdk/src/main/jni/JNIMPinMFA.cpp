@@ -210,24 +210,28 @@ static jobject nAbortSession(JNIEnv* env, jobject jobj, jlong jptr, jstring jacc
     return MakeJavaStatus(env, sdk->AbortSession(JavaToStdString(env, jaccessCode)));
 }
 
-static jobject nStartVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject juser, jstring jclientId, jstring jredirectUri)
+static jobject nStartVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject juser, jstring jclientId, jstring jredirectUri, jstring jaccessCode)
 {
     MfaSDK* sdk = (MfaSDK *)jptr;
-    return MakeJavaStatus(env,sdk->StartVerification(JavaToMPinUser(env, juser), JavaToStdString(env, jclientId), JavaToStdString(env, jredirectUri)));
+    return MakeJavaStatus(env,sdk->StartVerification(JavaToMPinUser(env, juser), JavaToStdString(env, jclientId), JavaToStdString(env, jredirectUri), JavaToStdString(env, jaccessCode)));
 }
 
-static jobject nFinishVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject juser, jstring jverificationCode, jstring activationToken)
+static jobject nFinishVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject juser, jstring jverificationCode, jobject jverificationResult)
 {
-    MfaSDK* sdk = (MfaSDK *)jptr;
-    MfaSDK::String jActivationToken;
+    MfaSDK* sdk = (MfaSDK*) jptr;
+    MfaSDK::VerificationResult verificationResult;
 
-    MfaSDK::Status status = sdk->FinishVerification(JavaToMPinUser(env, juser), JavaToStdString(env, jverificationCode), jActivationToken);
+    MfaSDK::Status status = sdk->FinishVerification(JavaToMPinUser(env, juser), JavaToStdString(env, jverificationCode), verificationResult);
 
-    jclass clsStringBuilder = env->FindClass("java/lang/StringBuilder");
-    jmethodID midSetLength = env->GetMethodID(clsStringBuilder, "setLength", "(I)V");
-    env->CallVoidMethod(activationToken, midSetLength, jActivationToken.size());
-    jmethodID midReplace = env->GetMethodID(clsStringBuilder, "replace", "(IILjava/lang/String;)Ljava/lang/StringBuilder;");
-    env->CallObjectMethod(activationToken, midReplace, 0, jActivationToken.size(), env->NewStringUTF(jActivationToken.c_str()));
+    if(status == MPinSDKBase::Status::OK)
+    {
+        jclass clsVerificationResult = env->FindClass("com/miracl/mpinsdk/model/VerificationResult");
+        jfieldID fIdAccessCode = env->GetFieldID(clsVerificationResult, "accessCode", "Ljava/lang/String;");
+        jfieldID fIdVerificationToken = env->GetFieldID(clsVerificationResult, "activationToken", "Ljava/lang/String;");
+
+        env->SetObjectField(jverificationResult, fIdAccessCode, env->NewStringUTF(verificationResult.accessId.c_str()));
+        env->SetObjectField(jverificationResult, fIdVerificationToken, env->NewStringUTF(verificationResult.activationToken.c_str()));
+    }
 
     return MakeJavaStatus(env, status);
 }
@@ -515,8 +519,8 @@ static JNINativeMethod g_methodsMfaSDK[] =
     NATIVE_METHOD(nGetSessionDetails, "(JLjava/lang/String;Lcom/miracl/mpinsdk/model/SessionDetails;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nSetCID, "(JLjava/lang/String;)V"),
     NATIVE_METHOD(nAbortSession, "(JLjava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
-    NATIVE_METHOD(nStartVerification, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
-    NATIVE_METHOD(nFinishVerification, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/StringBuilder;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nStartVerification, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nFinishVerification, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Lcom/miracl/mpinsdk/model/VerificationResult;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nStartRegistration, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nStartRegistrationRegCode, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nRestartRegistration, "(JLcom/miracl/mpinsdk/model/User;)Lcom/miracl/mpinsdk/model/Status;"),

@@ -320,6 +320,13 @@ public:
         String publicKey;
         String dtas;
     };
+    
+    class VerificationResult
+    {
+    public:
+        String accessId;
+        String activationToken;
+    };
 
 protected:
     MPinSDKBase();
@@ -455,8 +462,8 @@ protected:
     Status CheckUserIsAwaitingRegistration(IN UserPtr user);
     bool IsUserKeyExisting(const String& key);
 
-    Status StartVerification(INOUT UserPtr user, INOUT String clientId,INOUT String redirectURI);
-    Status FinishVerification(INOUT UserPtr user, String code, OUT String& activationToken);
+    Status StartVerification(INOUT UserPtr user, INOUT String clientId,INOUT String redirectURI, INOUT String accessId);
+    Status FinishVerification(INOUT UserPtr user, String code, OUT VerificationResult& verificationResult);
     Status StartRegistration(INOUT UserPtr user, const String& activateCode, const String& userData, const String& accessCode, const String& pushToken);
     Status RestartRegistration(INOUT UserPtr user, const String& userData);
     Status RequestRegistration(INOUT UserPtr user, const String& activateCode, const String& accessCode, const String& pushToken, const String& userData);
