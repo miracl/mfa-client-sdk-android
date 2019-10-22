@@ -50,6 +50,8 @@ public:
         String customerName;
         String customerIconUrl;
         bool registerOnly;
+        String clientId;
+        String redirectURI;
     };
 
     MfaSDK();
