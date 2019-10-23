@@ -18,16 +18,13 @@
  ***************************************************************/
 package com.miracl.mpinsdk.model;
 
-
-import com.miracl.mpinsdk.util.Hex;
-
 import java.io.Closeable;
 
 
 public class User implements Closeable {
 
     public enum State {
-        INVALID, STARTED_REGISTRATION, ACTIVATED, REGISTERED, BLOCKED
+        INVALID, STARTED_VERIFICATION, STARTED_REGISTRATION, ACTIVATED, REGISTERED, BLOCKED
     }
 
     private long mPtr;
@@ -46,12 +43,14 @@ public class User implements Closeable {
     public State getState() {
         switch (nGetState(mPtr)) {
             case 1:
-                return State.STARTED_REGISTRATION;
+                return State.STARTED_VERIFICATION;
             case 2:
-                return State.ACTIVATED;
+                return State.STARTED_REGISTRATION;
             case 3:
-                return State.REGISTERED;
+                return State.ACTIVATED;
             case 4:
+                return State.REGISTERED;
+            case 5:
                 return State.BLOCKED;
             default:
                 return State.INVALID;

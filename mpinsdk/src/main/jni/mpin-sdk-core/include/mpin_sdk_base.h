@@ -204,6 +204,7 @@ public:
         enum State
         {
             INVALID,
+            STARTED_VERIFICATION,
             STARTED_REGISTRATION,
             ACTIVATED,
             REGISTERED,
@@ -235,9 +236,11 @@ public:
         void CacheTimePermit(const String& timePermit, int date);
         void SetBackend(const String& backend);
         void SetStartedRegistration(const String& mpinId, const RegOTT& regOTT, const String& accessCode, const String& customerId, const String& appId);
+        void SetStartedVerification(const String& accessCode);
         void SetRegistrationExpiration(long expireTime, long nowTime);
         void SetActivated();
         void SetRegistered();
+        void SetVerification();
         void SetPinLength(int pinLength);
         void Invalidate();
         void Block();
