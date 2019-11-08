@@ -35,6 +35,7 @@ import com.miracl.mpinsdk.model.SessionDetails;
 import com.miracl.mpinsdk.model.Status;
 import com.miracl.mpinsdk.model.Signature;
 import com.miracl.mpinsdk.model.User;
+import com.miracl.mpinsdk.model.VerificationResult;
 import com.miracl.mpinsdk.util.Hex;
 
 import java.util.ArrayList;
@@ -301,6 +302,58 @@ public class MPinMfaAsync {
             @Override
             public void run() {
                 callback.onSuccess(mMfaSdk.isUserExisting(id, customerId, appId));
+            }
+        });
+    }
+
+    /**
+     * Start the verification process for a previously created {@link User}.
+     *
+     * @param user
+     *   The user to start the verification for
+     * @param clientId
+     *   The client ID associated with the user
+     * @param redirectUri
+     *   The redirectUri...
+     * @param accessCode
+     *   A valid access code
+     * @param callback
+     *   Callback for the operation
+     */
+    public void startVerification(final @NonNull User user, final @NonNull String clientId, final @NonNull String redirectUri, final @NonNull String accessCode, @NonNull final Callback<Void> callback){
+
+        mWorkerHandler.post(new Runnable() {
+
+            @Override
+            public void run(){
+                Status status = mMfaSdk.startVerification(user, clientId, redirectUri, accessCode);
+                if (callback != null) {
+                    callback.onResult(status, null);
+                }
+            }
+        });
+    }
+
+    /**
+     * Finish the verification process for a previously created {@link User}.
+     *
+     * @param user
+     *   The user to finish the verification for
+     * @param verificationCode
+     *   A valid verification code
+     * @param callback
+     *   Callback with the retrieved verification result
+     */
+    public void finishVerification(final @NonNull User user, final @NonNull String verificationCode, @NonNull final Callback<VerificationResult> callback) {
+        mWorkerHandler.post(new Runnable() {
+
+            @Override
+            public void run(){
+                VerificationResult verificationResult = new VerificationResult();
+                Status status = mMfaSdk.finishVerification(user, verificationCode, verificationResult);
+                if (callback != null) {
+                    callback.onResult(status, verificationResult);
+                }
             }
         });
     }

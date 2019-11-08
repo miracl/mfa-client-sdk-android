@@ -27,6 +27,7 @@ import com.miracl.mpinsdk.model.SessionDetails;
 import com.miracl.mpinsdk.model.Signature;
 import com.miracl.mpinsdk.model.Status;
 import com.miracl.mpinsdk.model.User;
+import com.miracl.mpinsdk.model.VerificationResult;
 
 import java.io.Closeable;
 import java.util.List;
@@ -246,6 +247,15 @@ public class MPinMFA implements Closeable {
         return nHashDocument(mPtr, document);
     }
 
+    public Status startVerification(User user, String clientId, String redirectUri, String accessCode) {
+        return nStartVerification(mPtr, user, clientId, redirectUri, accessCode);
+    }
+
+    public Status finishVerification(User user, String verificationCode, VerificationResult verificationResult) {
+        return nFinishVerification(mPtr, user, verificationCode, verificationResult);
+    }
+
+
     // Native methods from MPinSDKBase
 
     private native long nConstruct();
@@ -341,4 +351,8 @@ public class MPinMFA implements Closeable {
     private native boolean nIsRegistrationTokenSet(long ptr, User user);
 
     private native byte[] nHashDocument(long ptr, byte[] document);
+
+    private native Status nStartVerification(long ptr, User user, String clientId, String redirectUri, String accessCode);
+
+    private native Status nFinishVerification(long ptr, User user, String verificationCode, VerificationResult verificationResult);
 }

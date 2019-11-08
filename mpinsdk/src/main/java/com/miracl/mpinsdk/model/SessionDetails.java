@@ -32,5 +32,9 @@ public class SessionDetails {
 
     public String customerIconUrl;
 
+    public String clientId;
+
+    public String redirectUri;
+
     public boolean registerOnly;
 }
