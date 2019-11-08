@@ -1,4 +1,4 @@
-# Android Mobile SDK for MIRACL MFA Platform 
+# Android Mobile SDK for MIRACL MFA Platform
 
 ## Building the MFA Mobile SDK for Android
 
@@ -13,7 +13,7 @@
 1. Import the project - File-> Open -> \<mfa-client-sdk-android\>
 1. From Gradle Tool View select :mpinsdk -> Tasks -> build -> build
 1. The assembled aars will be located in \<mfa-client-sdk-android\>/mpinsdk/build/outputs/aar
- 
+
 #### From Command Line
 1. Navigate to \<mfa-client-sdk-android\>
 1. Execute ./gradlew build
@@ -83,7 +83,7 @@ This method constructs an SDK instance.
 
 ##### `Status init(Map<String, String> config, Context context)`
 This method initializes the SDK. It receives a key/value map of the configuration parameters.
-The configuration is a key-value map into which different configuration options can be inserted. This is a flexible way of passing configurations to the SDK, as the method parameters will not change when new configuration parameters are added. 
+The configuration is a key-value map into which different configuration options can be inserted. This is a flexible way of passing configurations to the SDK, as the method parameters will not change when new configuration parameters are added.
 Unsupported parameters are ignored. Currently, the SDK recognizes the following parameter:
 
 * `backend` - the URL of the MFA back-end service (Mandatory)
@@ -109,7 +109,7 @@ This method will clear all the currently set trusted domains.
 This method will set a specific _Client/Customer ID_ which the SDK should use when sending requests to the backend.
 The MIRACL MFA Platform generates _Client IDs_ (sometimes also referred as _Customer IDs_) for the platform customers.
 The customers can see those IDs through the _Platform Portal_.
-When customers use the SDK to build their own applications to authenticate users using the Platform, the _Client ID_ has to be provided using this method. 
+When customers use the SDK to build their own applications to authenticate users using the Platform, the _Client ID_ has to be provided using this method.
 
 ##### `Status testBackend(String server)`
 This method will test whether `server` is a valid back-end URL by trying to retrieve Client Settings from it.
@@ -130,19 +130,20 @@ The returned value is a newly created `User` instance. The User class itself loo
 
 ```java
 public class User implements Closeable {
- 
+
     public enum State {
         INVALID,
+        STARTED_VERIFICATION,
         STARTED_REGISTRATION,
         ACTIVATED,
         REGISTERED,
         BLOCKED
     };
-     
+
     public String getId() {
         ...
     }
- 
+
     public State getState() {
         ...
     }
@@ -171,7 +172,7 @@ public class User implements Closeable {
     public String toString() {
         return getId();
     }
- 
+
     ...
 }
 ```
@@ -257,10 +258,34 @@ When the mobile app has the Authorization URL, it can pass it to this method as 
 Note that the Authorization URL contains a parameter that identifies the app.
 This parameter is validated by the Platform and it should correspond to the Customer ID, set via `setCid()`.
 
+##### `Status startVerification(User user, String clientId, String redirectUri, String accessCode)`
+This method initializes the default user identity verification process. The verification confirms that the user identity is owned by the user.
+The default user identity verification in the _MIRACL MFA Platform_ sends an email message that contains a confirmation URL. When clicked it opens the authentication application (deep linking needs to be configured in the application) and `finishVerification()` should be called to finalize the verification. Note that the identity is created on the device where the email URL is opened.
+
+The SDK sends the necessary requests to the back-end service.
+The State of the User instance will change to `STARTED_VERIFICATION`.
+The status will indicate whether the operation is successful or not.
+
+##### `Status finishVerification(User user, String verificationCode, VerificationResult verificationResult)`
+This method is used to finalize the process of the default user identity verification.
+The `verificationCode` has to be obtained from the verification URL received in the confirmation email as a query parameter.
+
+The `VerificationResult` class returned as a reference variable has the following form:
+
+```
+public class VerificationResult {
+    public String accessCode;
+    public String activationToken;
+}
+```
+
+The `accessCode` is a session identifier which you could control the session with by `abortSession()`, `getSessionDetails()`.
+The `activationToken` is a code which indicates that the user identity is already verified and is used to start the identity registration.
+
 ##### `Status startRegistration(User user, String accessCode)`
 ##### `Status startRegistration(User user, String accessCode, String pushToken)`
 ##### `Status startRegistration(User user, String accessCode, String pushToken, String regCode)`
-This method initializes the registration for a User that has already been created.
+This method initializes the registration for a User that has already been verified.
 The SDK starts the Setup flow, sending the necessary requests to the back-end service.
 The State of the User instance will change to `STARTED_REGISTRATION`.
 The status will indicate whether the operation was successful or not.
@@ -269,14 +294,11 @@ The Platform will also start a user identity verification procedure, by sending 
 
 The `accessCode` should be obtained from a browser session, and session details are retrieved before starting the registration.
 This way the mobile app can show to the end-user the respective details for the customer, which the identity is going to be associated to.
- 
+
 Optionally, the application might pass additional `pushToken`, which is a unique token for sending _Push Notifications_ to the mobile app.
 When such token is provided, the Platform might use additional verification step by sending a Push Notification to the app.
 
-Additional optional parameter is the `regCode`.
-This is a _Registration Code_ that could be used to bypass the identity verification process.
-A valid registration code could be generated by an already registered device, after authenticating the user.
-This code could then be provided during the registration process on a device, and the Platform will let the user register, skipping the verification process for that identity.
+The `regCode` is a code which value indicates that the user identity is already verified. It could be obtained as `activationToken` value of `VerificationResult` object from a successfull call to `finishVerification()` method using the default identity verification or using a bootstrap code.
 
 ##### `Status restartRegistration(User user)`
 This method re-initializes the registration process for a user, where registration has already started.
@@ -311,7 +333,7 @@ If they cannot be retrieved, the method will return Status `REVOKED`.
 If this method is successfully completed, the app should read the PIN/secret from the end-user and call one of the `finishAuthentication()` variants to authenticate the user.
 
 Optionally, an `accessCode` could be provided. This code is retrieved out-of-band from a browser session when the user has to be authenticated to an online service, such as the _MIRACL MFA Platform_.
-When this code is provided, the SDK will notify the service that authentication associated with the given `accessCode` has started for the provided user. 
+When this code is provided, the SDK will notify the service that authentication associated with the given `accessCode` has started for the provided user.
 
 ##### `Status startAuthenticationOtp(User user)`
 This method will start the authentication for OTP generation.
@@ -339,7 +361,7 @@ After the 3rd unsuccessful authentication attempt, the method will still return 
 
 ##### `Status finishAuthentication(User user, String secret, String accessCode, StringBuilder authzCode)`
 ##### `Status finishAuthentication(User user, String[] multiFactor, String accessCode, StringBuilder authCode)`
-This method authenticates an end-user in a way that allows the mobile app to log the user into the app itself after verifying the authentication against its own backend. 
+This method authenticates an end-user in a way that allows the mobile app to log the user into the app itself after verifying the authentication against its own backend.
 When using this flow, the mobile app would first retrieve the `accessCode` using the `getAccessCode()` method,
 and when authentication the user it will receive an _Authorization Code_, `authzCode`.
 Using this Authorization Code, the mobile app can make a request to its own backend, so the backend can validate it using one of the _MFA Platform SDK_ flavors,
