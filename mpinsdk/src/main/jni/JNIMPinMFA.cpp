@@ -214,10 +214,10 @@ static jobject nAbortSession(JNIEnv* env, jobject jobj, jlong jptr, jstring jacc
     return MakeJavaStatus(env, sdk->AbortSession(JavaToStdString(env, jaccessCode)));
 }
 
-static jobject nStartVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject juser, jstring jclientId, jstring jredirectUri, jstring jaccessCode)
+static jobject nStartVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject juser, jstring jclientId, jstring jaccessCode)
 {
     MfaSDK* sdk = (MfaSDK *)jptr;
-    return MakeJavaStatus(env,sdk->StartVerification(JavaToMPinUser(env, juser), JavaToStdString(env, jclientId), JavaToStdString(env, jredirectUri), JavaToStdString(env, jaccessCode)));
+    return MakeJavaStatus(env,sdk->StartVerification(JavaToMPinUser(env, juser), JavaToStdString(env, jclientId), JavaToStdString(env, jaccessCode)));
 }
 
 static jobject nFinishVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject juser, jstring jverificationCode, jobject jverificationResult)
@@ -523,7 +523,7 @@ static JNINativeMethod g_methodsMfaSDK[] =
     NATIVE_METHOD(nGetSessionDetails, "(JLjava/lang/String;Lcom/miracl/mpinsdk/model/SessionDetails;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nSetCID, "(JLjava/lang/String;)V"),
     NATIVE_METHOD(nAbortSession, "(JLjava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
-    NATIVE_METHOD(nStartVerification, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
+    NATIVE_METHOD(nStartVerification, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nFinishVerification, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Lcom/miracl/mpinsdk/model/VerificationResult;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nStartRegistration, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
     NATIVE_METHOD(nStartRegistrationRegCode, "(JLcom/miracl/mpinsdk/model/User;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/mpinsdk/model/Status;"),
