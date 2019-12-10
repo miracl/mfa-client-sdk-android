@@ -313,20 +313,18 @@ public class MPinMfaAsync {
      *   The user to start the verification for
      * @param clientId
      *   The client ID associated with the user
-     * @param redirectUri
-     *   The redirectUri...
      * @param accessCode
      *   A valid access code
      * @param callback
      *   Callback for the operation
      */
-    public void startVerification(final @NonNull User user, final @NonNull String clientId, final @NonNull String redirectUri, final @NonNull String accessCode, @NonNull final Callback<Void> callback){
+    public void startVerification(final @NonNull User user, final @NonNull String clientId, final @NonNull String accessCode, @NonNull final Callback<Void> callback){
 
         mWorkerHandler.post(new Runnable() {
 
             @Override
             public void run(){
-                Status status = mMfaSdk.startVerification(user, clientId, redirectUri, accessCode);
+                Status status = mMfaSdk.startVerification(user, clientId,accessCode);
                 if (callback != null) {
                     callback.onResult(status, null);
                 }

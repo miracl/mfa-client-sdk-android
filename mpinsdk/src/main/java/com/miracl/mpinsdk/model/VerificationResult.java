@@ -5,4 +5,6 @@ public class VerificationResult {
     public String accessCode;
 
     public String activationToken;
+
+    public long expireTime;
 }

@@ -252,8 +252,8 @@ public class MPinMFA implements Closeable {
         return nHashDocument(mPtr, document);
     }
 
-    public Status startVerification(User user, String clientId, String redirectUri, String accessCode) {
-        return nStartVerification(mPtr, user, clientId, redirectUri, accessCode);
+    public Status startVerification(User user, String clientId, String accessCode) {
+        return nStartVerification(mPtr, user, clientId, accessCode);
     }
 
     public Status finishVerification(User user, String verificationCode, VerificationResult verificationResult) {
@@ -357,7 +357,7 @@ public class MPinMFA implements Closeable {
 
     private native byte[] nHashDocument(long ptr, byte[] document);
 
-    private native Status nStartVerification(long ptr, User user, String clientId, String redirectUri, String accessCode);
+    private native Status nStartVerification(long ptr, User user, String clientId, String accessCode);
 
     private native Status nFinishVerification(long ptr, User user, String verificationCode, VerificationResult verificationResult);
 }
