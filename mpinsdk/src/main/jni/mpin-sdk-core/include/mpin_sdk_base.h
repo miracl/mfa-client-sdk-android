@@ -329,6 +329,7 @@ public:
     public:
         String accessId;
         String activationToken;
+        long expireTime;
     };
 
 protected:
