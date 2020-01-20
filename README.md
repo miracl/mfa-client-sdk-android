@@ -258,7 +258,7 @@ When the mobile app has the Authorization URL, it can pass it to this method as 
 Note that the Authorization URL contains a parameter that identifies the app.
 This parameter is validated by the Platform and it should correspond to the Customer ID, set via `setCid()`.
 
-##### `Status startVerification(User user, String clientId, String redirectUri, String accessCode)`
+##### `Status startVerification(User user, String clientId, String accessCode)`
 This method initializes the default user identity verification process. The verification confirms that the user identity is owned by the user.
 The default user identity verification in the _MIRACL MFA Platform_ sends an email message that contains a confirmation URL. When clicked it opens the authentication application (deep linking needs to be configured in the application) and `finishVerification()` should be called to finalize the verification. Note that the identity is created on the device where the email URL is opened.
 

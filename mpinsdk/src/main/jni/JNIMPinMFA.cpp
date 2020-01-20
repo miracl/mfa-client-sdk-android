@@ -232,9 +232,11 @@ static jobject nFinishVerification(JNIEnv* env,jobject jobj, jlong jptr, jobject
         jclass clsVerificationResult = env->FindClass("com/miracl/mpinsdk/model/VerificationResult");
         jfieldID fIdAccessCode = env->GetFieldID(clsVerificationResult, "accessCode", "Ljava/lang/String;");
         jfieldID fIdVerificationToken = env->GetFieldID(clsVerificationResult, "activationToken", "Ljava/lang/String;");
+        jfieldID fIdExpireTime = env->GetFieldID(clsVerificationResult, "expireTime", "J");
 
         env->SetObjectField(jverificationResult, fIdAccessCode, env->NewStringUTF(verificationResult.accessId.c_str()));
         env->SetObjectField(jverificationResult, fIdVerificationToken, env->NewStringUTF(verificationResult.activationToken.c_str()));
+        env->SetLongField(jverificationResult, fIdExpireTime, verificationResult.expireTime);
     }
 
     return MakeJavaStatus(env, status);
